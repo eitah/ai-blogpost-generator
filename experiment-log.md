@@ -40,3 +40,6 @@ key_aspects = "Raspberry Pi, WireGuard, and a little bit of bash"
 01-learning-path-04
 Identical prompts and text to #3 but scored one higher than before despite (I
 think?) having temperature 0.
+
+01-learning-path-05
+Code blocks! Repetitiveness.

@@ -17,3 +17,8 @@ only had more time", etc...
 
 * Replatform into typescript to make it easier to write code for
 * ~~Replatform into *.py files to make it easier to run over and over~~
+* Try with a spantree project, for the purpose of explaining what we do or what
+  we've done in the past, either from the client directly or from the team
+  members that worked on it. It could be part of the files of a private client
+  briefing to help the sales team understand the tech involved. If we had all of
+  them consolodated we could have chatGPT query past projects and work.

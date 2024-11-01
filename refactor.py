@@ -145,6 +145,9 @@ def process_transcript(transcript_file_path, topic, header_title, key_aspects):
     Style Score: {evaluation_result['style']['score']}/10
     {evaluation_result['style']['explanation']}
 
+    Repetitiveness Score: {evaluation_result['repetitiveness']['score']}/10
+    {evaluation_result['repetitiveness']['explanation']}
+
     Overall Score: {evaluation_result['overall_score']}/10
     """
 

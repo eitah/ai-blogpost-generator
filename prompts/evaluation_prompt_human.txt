@@ -2,6 +2,7 @@ Please evaluate the following blog post based on these criteria:
 1. Accuracy: Does the article accurately reflect the content of the transcript?
 2. Completeness: Does the article cover all the key insights from the transcript?
 3. Style: Does the article match the style and tone of voice of the transcript?
+4. Repetitiveness: Does the article repeat phrases or idioms annoyingly?
 
 Blog post:
 {blogpost}
@@ -22,6 +23,10 @@ Format your response as a JSON object with the following structure:
         "explanation": "<explanation>"
     }},
     "style": {{
+        "score": <score>,
+        "explanation": "<explanation>"
+    }},
+    "repetitiveness": {{
         "score": <score>,
         "explanation": "<explanation>"
     }},

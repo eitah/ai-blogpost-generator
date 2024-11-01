@@ -16,6 +16,8 @@ You are ghostwriting in the style of {author} for a section of a blog post about
 
 {section_content}
 
+PLEASE DO USE CODE BLOCKS TO ILLUSTRATE POINTS WHERE RELEVANT.
+
 ## Full Outline:
 Do not duplicate content that will be covered in other sections of the outline, keep the scope narrow to the specific section named above.Here is the full outline of
 the blog post:
