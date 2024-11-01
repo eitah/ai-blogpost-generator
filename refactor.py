@@ -126,23 +126,6 @@ def process_transcript(transcript_file_path, topic, header_title, key_aspects):
             "full_outline": full_outline
         })
 
-    def generate_image(prompt, context):
-        handler = fal_client.submit(
-            "fal-ai/flux",
-            arguments={
-                "prompt": prompt.format(**context)
-            },
-        )
-
-        result = handler.get()
-        print(result)
-
-        image_url = result['images'][0]['url']
-        return image_url
-
-    # Example usage:
-    prompt = "Watercolor style image on a textured white paper background. In the center, elegant hand-lettered text reads '{header_title}' in a deep purple color with a slight watercolor bleed effect. Surrounding the text, soft watercolor illustrations represent key aspects of {key_aspects}. Use a muted color palette with purple, teal, gold, and soft pink tones. The watercolor elements should have gentle color gradients and subtle bleeding effects, with some areas of the white paper showing through. Add a few splatter effects in the background for texture."
-
     llm_mini = ChatOpenAI(
         model_name="gpt-4o-mini",
         temperature=0,
@@ -220,9 +203,6 @@ def process_transcript(transcript_file_path, topic, header_title, key_aspects):
         blog_content[section] = section_content["section"]
 
     blogpost = "\n".join(blog_content.values())
-
-    image_url = generate_image(
-        prompt, {"header_title": header_title, "key_aspects": key_aspects})
 
     # Evaluate the article
     evaluation_result = evaluate_article(blogpost, transcript_content)
