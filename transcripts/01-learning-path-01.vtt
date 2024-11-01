@@ -1,0 +1,3042 @@
+WEBVTT
+
+1
+00:00:00.110 --> 00:00:00.720
+Maurice Rabb: The.
+
+2
+00:00:01.180 --> 00:00:02.820
+Kyle Hargraves: Yeah, I don't know why you make me the host. I've never.
+
+3
+00:00:02.820 --> 00:00:07.252
+Maurice Rabb: Yeah, yeah, I'm just in case I had to drop. But so you were saying, like,
+
+4
+00:00:08.955 --> 00:00:10.139
+Kyle Hargraves: It's Good Friday.
+
+5
+00:00:10.140 --> 00:00:10.400
+Maurice Rabb: Right.
+
+6
+00:00:10.400 --> 00:00:15.850
+Kyle Hargraves: Talking through what we wanted to do for spam engineering. It was something
+
+7
+00:00:16.110 --> 00:00:22.049
+Kyle Hargraves: that was a little more hands-on than some of the like study work that had been happening, and then
+
+8
+00:00:22.310 --> 00:00:26.068
+Kyle Hargraves: something to do with networking vaguely to do with networking right?
+
+9
+00:00:26.940 --> 00:00:32.590
+Kyle Hargraves: And so the idea we came up with was to sort of get everybody to set up a little
+
+10
+00:00:32.710 --> 00:00:36.323
+Kyle Hargraves: private network for all of Span tree
+
+11
+00:00:36.980 --> 00:00:43.190
+Kyle Hargraves: and it hits the like span land cluster. There's a Gke cluster. That span tree runs
+
+12
+00:00:43.740 --> 00:00:46.959
+Kyle Hargraves: that we call span land. It hosts a few different things.
+
+13
+00:00:48.521 --> 00:00:51.329
+Kyle Hargraves: And so I think the goal here
+
+14
+00:00:51.770 --> 00:01:07.429
+Kyle Hargraves: is, you know over however, many sessions. If you think about the interview question, that people sometimes ask like, you know, you open a browser. You type google.com. What happens right? I'd like to unpack that a little bit, so that by the end of this
+
+15
+00:01:08.680 --> 00:01:25.710
+Kyle Hargraves: you're a little more conversant on like rather than just like the Http layer. What's actually happening like, how does the network work? I don't know exactly where we'll go? I think that's going to be based on feedback to some degree of like, Hey, I don't know what this means, and maybe we'll follow that path. Maybe we won't
+
+16
+00:01:27.800 --> 00:01:35.079
+Kyle Hargraves: But today, 1st session. I really just wanted to get to the point where, like, we're all reasonably confident that, like
+
+17
+00:01:35.460 --> 00:01:42.339
+Kyle Hargraves: the little raspberry pi's we have, if you have it set up can talk to each other. If you don't have it set up. We could help with that, maybe
+
+18
+00:01:42.783 --> 00:01:46.470
+Kyle Hargraves: or if you just want to do that offline. That's fine, too. Right?
+
+19
+00:01:46.840 --> 00:01:50.640
+Kyle Hargraves: You can always DM me, too, if you want to deal with something later.
+
+20
+00:01:53.550 --> 00:01:57.199
+Kyle Hargraves: so let me share, and we will go through
+
+21
+00:01:58.580 --> 00:02:01.350
+Kyle Hargraves: sort of high level first.st
+
+22
+00:02:01.570 --> 00:02:03.650
+Kyle Hargraves: what we're actually doing.
+
+23
+00:02:13.261 --> 00:02:23.689
+Kyle Hargraves: So the instructions that I put in notion basically walk through like install a more or less empty raspberry pi, but it's got like a desktop.
+
+24
+00:02:25.830 --> 00:02:30.799
+Kyle Hargraves: you know the the usual things you'd expect that comes with chromium. It's got a little terminal
+
+25
+00:02:31.373 --> 00:02:37.730
+Kyle Hargraves: and then all we really install in it. From there is wireguard, which we'll cover in a second.
+
+26
+00:02:37.930 --> 00:02:46.789
+Kyle Hargraves: and then a bunch of like little network debugging tools right? Like so you can make Dns requests, or trace route or
+
+27
+00:02:46.880 --> 00:02:48.110
+Kyle Hargraves: that sort of stuff.
+
+28
+00:02:48.420 --> 00:02:52.189
+Kyle Hargraves: and we'll probably get into details on each of those as we go.
+
+29
+00:02:55.330 --> 00:02:56.589
+Kyle Hargraves: so the network
+
+30
+00:02:56.630 --> 00:03:03.900
+Kyle Hargraves: is that we're setting up right like it's literally from my desktop. There's a little raspberry pi that I can see out of the corner of my eye
+
+31
+00:03:04.040 --> 00:03:17.980
+Kyle Hargraves: that can now like reach out and ping the raspberry pi sitting on your desks or in your closet, wherever it can also talk to the things that we run in Gke, even though that's technically a private network, right?
+
+32
+00:03:18.659 --> 00:03:23.570
+Kyle Hargraves: And we do that with by using wire guard. This VPN software
+
+33
+00:03:25.440 --> 00:03:27.670
+Kyle Hargraves: wireguard's like built into Linux.
+
+34
+00:03:27.720 --> 00:03:31.260
+Kyle Hargraves: You kind of have to opt out of support honestly at this point.
+
+35
+00:03:31.280 --> 00:03:42.090
+Kyle Hargraves: So it was just like by far the simplest thing to set up, and I knew for a fact that somebody else had already done the hard work of figuring out how to run it in Kubernetes. So it was like, I just had a
+
+36
+00:03:42.450 --> 00:03:44.199
+Kyle Hargraves: simple place to boot it.
+
+37
+00:03:46.810 --> 00:03:49.750
+Kyle Hargraves: Maybe I should pull up the sort of
+
+38
+00:03:49.920 --> 00:03:51.973
+Kyle Hargraves: docs for
+
+39
+00:03:55.610 --> 00:04:05.330
+Kyle Hargraves: once we've got no who cares? So let's just go to a pi right? This is my raspberry pi running on my desktop
+
+40
+00:04:05.700 --> 00:04:08.651
+Kyle Hargraves: like my screen right now that I'm sharing
+
+41
+00:04:09.120 --> 00:04:10.850
+Kyle Hargraves: it's my laptop right?
+
+42
+00:04:10.880 --> 00:04:14.659
+Kyle Hargraves: And then ssh! Into the raspberry pi
+
+43
+00:04:14.930 --> 00:04:16.320
+Kyle Hargraves: on my desktop
+
+44
+00:04:17.471 --> 00:04:23.569
+Kyle Hargraves: as part of the steps. What you go through is like, go to gke with your
+
+45
+00:04:23.620 --> 00:04:32.299
+Kyle Hargraves: span tree credentials and get this config file out right. Write it to a certain location, Ryan. You've already been through this. So you kind of know what I'm talking about.
+
+46
+00:04:32.660 --> 00:04:34.269
+Kyle Hargraves: and then start wireguard.
+
+47
+00:04:34.290 --> 00:04:35.380
+Kyle Hargraves: So
+
+48
+00:04:36.520 --> 00:04:43.720
+Kyle Hargraves: the result of that is that I have, like a little wire guard interface set up. We'll cover what interfaces are in a second.
+
+49
+00:04:46.390 --> 00:04:52.339
+Kyle Hargraves: and this is my private tunnel directly into a service that's running inside of Gcp.
+
+50
+00:04:52.410 --> 00:04:54.849
+Kyle Hargraves: right? I can see on this
+
+51
+00:04:55.490 --> 00:05:05.460
+Kyle Hargraves: that I have a certain public key. This is like what identifies my raspberry pi right? Every client that that's allowed to connect to that server has a different key.
+
+52
+00:05:05.900 --> 00:05:10.670
+Kyle Hargraves: The server has its own key, right? And that's what like encrypts the communication between us.
+
+53
+00:05:11.180 --> 00:05:13.920
+Kyle Hargraves: I'm hoping that I don't
+
+54
+00:05:14.010 --> 00:05:26.286
+Kyle Hargraves: end up going into any of like public private key cryptology, because I don't. I don't know. Honestly, it's just like somebody figured out math someday, and now it works, and it's secure, right? I have no idea.
+
+55
+00:05:27.780 --> 00:05:31.339
+Kyle Hargraves: anyway, other end of that is this gives me an IP.
+
+56
+00:05:31.980 --> 00:05:32.810
+Kyle Hargraves: But
+
+57
+00:05:33.120 --> 00:05:34.460
+Kyle Hargraves: let's look at
+
+58
+00:05:34.590 --> 00:05:36.379
+Kyle Hargraves: the actual config file.
+
+59
+00:05:36.440 --> 00:05:41.989
+Kyle Hargraves: I should caveat. We're recording this and everything. There's gonna be some private keys on screen. Technically.
+
+60
+00:05:42.030 --> 00:05:45.907
+Kyle Hargraves: I shouldn't really leak that. But in practice it, who cares?
+
+61
+00:05:47.240 --> 00:05:54.720
+Kyle Hargraves: So this is the config. This is basically what you would see if you get your config out of Gke.
+
+62
+00:05:56.080 --> 00:06:00.719
+Kyle Hargraves: and we'll end up unpacking a lot of this over time. All I'm really highlighting right now
+
+63
+00:06:00.890 --> 00:06:04.800
+Kyle Hargraves: is the endpoint. Is wireguard.spantree.net
+
+64
+00:06:05.180 --> 00:06:13.439
+Kyle Hargraves: right? That that resolves to something to like the service, the wire guard server that we are running inside of Gke.
+
+65
+00:06:13.810 --> 00:06:16.320
+Kyle Hargraves: And so your raspberry pi starts.
+
+66
+00:06:16.730 --> 00:06:26.280
+Kyle Hargraves: It starts wire guard, and now you have this tunnel into the Gke network on my side. I have a similar tunnel. Right? And so.
+
+67
+00:06:26.520 --> 00:06:32.579
+Kyle Hargraves: if we talk to each other, we are flowing over that tunnel like our traffic leaves my desk.
+
+68
+00:06:32.680 --> 00:06:36.280
+Kyle Hargraves: enters Gke, and then goes to.
+
+69
+00:06:36.820 --> 00:06:39.830
+Kyle Hargraves: In this case, let's say, Pinging Ryan.
+
+70
+00:06:40.830 --> 00:06:42.790
+Kyle Hargraves: does anybody actually have
+
+71
+00:06:43.880 --> 00:06:44.890
+Kyle Hargraves: a
+
+72
+00:06:44.900 --> 00:06:46.290
+Kyle Hargraves: high up.
+
+73
+00:06:46.390 --> 00:06:47.500
+Kyle Hargraves: No, that's me.
+
+74
+00:06:47.500 --> 00:06:49.039
+Ryan Dempsey: I I do.
+
+75
+00:06:53.293 --> 00:06:54.520
+Kyle Hargraves: You don't
+
+76
+00:06:55.130 --> 00:06:56.800
+Kyle Hargraves: wait, do you?
+
+77
+00:06:59.030 --> 00:07:00.309
+Kyle Hargraves: Did you? Reboot it.
+
+78
+00:07:01.410 --> 00:07:02.380
+Ryan Dempsey: No, I'm.
+
+79
+00:07:02.540 --> 00:07:03.630
+Kyle Hargraves: Is that you
+
+80
+00:07:05.460 --> 00:07:08.179
+Kyle Hargraves: can you try and ping? This is
+
+81
+00:07:08.290 --> 00:07:14.190
+Kyle Hargraves: sorry. So this 1st session is probably gonna be a lot of this like figuring out what are the little things that are not working right now?
+
+82
+00:07:15.086 --> 00:07:17.510
+Kyle Hargraves: I'll bring mine down and back up.
+
+83
+00:07:20.910 --> 00:07:22.550
+Kyle Hargraves: Yeah, still unreachable.
+
+84
+00:07:24.940 --> 00:07:30.759
+Kyle Hargraves: So in the office, when we went through this we had I wonder if Eli left his on?
+
+85
+00:07:31.130 --> 00:07:32.832
+Kyle Hargraves: He did. Beautiful.
+
+86
+00:07:34.210 --> 00:07:35.750
+Kyle Hargraves: Oh, sorry.
+
+87
+00:07:36.330 --> 00:07:37.899
+Kyle Hargraves: Decline a phone call.
+
+88
+00:07:39.200 --> 00:07:41.399
+Ryan Dempsey: I'm I'm able to ping you, Kyle.
+
+89
+00:07:41.860 --> 00:07:42.770
+Kyle Hargraves: Interesting.
+
+90
+00:07:43.210 --> 00:07:47.049
+Kyle Hargraves: so that'll be fun to figure out why that does not work.
+
+91
+00:07:47.130 --> 00:07:48.540
+Kyle Hargraves: Oh, now I am.
+
+92
+00:07:49.040 --> 00:07:49.650
+Kyle Hargraves: I wonder
+
+93
+00:07:50.290 --> 00:07:51.470
+Kyle Hargraves: something about
+
+94
+00:07:52.220 --> 00:07:53.450
+Kyle Hargraves: you're like
+
+95
+00:07:53.640 --> 00:07:55.810
+Kyle Hargraves: connection goes to sleep.
+
+96
+00:07:58.910 --> 00:08:00.400
+Kyle Hargraves: Sorry. I know I'm just like.
+
+97
+00:08:00.400 --> 00:08:00.670
+Jon Dugan: And.
+
+98
+00:08:00.670 --> 00:08:01.350
+Kyle Hargraves: Around, right now.
+
+99
+00:08:01.350 --> 00:08:02.909
+Jon Dugan: Not supposed to, but.
+
+100
+00:08:03.300 --> 00:08:06.060
+Kyle Hargraves: Yeah, I think I took out the keep alives.
+
+101
+00:08:06.060 --> 00:08:07.099
+Jon Dugan: Oh, did you? Okay.
+
+102
+00:08:07.100 --> 00:08:09.540
+Kyle Hargraves: Yeah, that's the problem. So.
+
+103
+00:08:09.540 --> 00:08:10.180
+Jon Dugan: Yeah.
+
+104
+00:08:10.180 --> 00:08:11.910
+Kyle Hargraves: It should not actually
+
+105
+00:08:12.050 --> 00:08:14.025
+Kyle Hargraves: sleep over time. But
+
+106
+00:08:14.770 --> 00:08:15.550
+Kyle Hargraves: yeah.
+
+107
+00:08:16.310 --> 00:08:18.110
+Kyle Hargraves: okay. So.
+
+108
+00:08:20.420 --> 00:08:22.099
+Jon Dugan: So you mind if I interject something here.
+
+109
+00:08:22.100 --> 00:08:24.810
+Kyle Hargraves: Yes, your girl, please. Anytime. Just interrupt.
+
+110
+00:08:25.020 --> 00:08:37.040
+Jon Dugan: Okay, so we've kind of talked about a lot of like set up here for this VPN thing. But kind of the idea here is, we can't all be in the same room with our raspberry pi. It's like on the same local area network.
+
+111
+00:08:37.706 --> 00:08:45.530
+Jon Dugan: So what we're trying to do is emulate, all being in the same room, which actually adds a whole bunch of abstraction. But
+
+112
+00:08:45.640 --> 00:08:52.540
+Jon Dugan: at for some point for this kind of earlier part, I think we're just going to take for granted that this VPN exists. We like beyond what we're going to talk about today.
+
+113
+00:08:52.590 --> 00:09:03.760
+Jon Dugan: And they're gonna pretend like they're all on the same network. So we can kind of like, do things in that sense and then build outward from okay. Well, now, now, we're not on the same land. How do you communicate further and further out.
+
+114
+00:09:03.800 --> 00:09:06.199
+Jon Dugan: just to kind of frame the whole idea.
+
+115
+00:09:06.630 --> 00:09:07.996
+Kyle Hargraves: Yep, yeah.
+
+116
+00:09:08.970 --> 00:09:10.210
+Kyle Hargraves: So
+
+117
+00:09:11.380 --> 00:09:17.979
+Kyle Hargraves: the like network diagrams that I ended up giving up on, because Lucidchart is just too fiddly to lose my life to.
+
+118
+00:09:19.560 --> 00:09:31.040
+Kyle Hargraves: I what I hope we can kind of explain. Like, John said, like initially, we're all on this very small network, from the perspective of like with the wire guard network. Right? There's
+
+119
+00:09:31.050 --> 00:09:36.059
+Kyle Hargraves: there's a few of us. There's the server. And then whoever has a pi currently running right
+
+120
+00:09:37.153 --> 00:09:40.260
+Kyle Hargraves: under the hood of that. There's actually.
+
+121
+00:09:40.700 --> 00:09:45.909
+Kyle Hargraves: you know, there's there's a network running in Gcp, there's a network at each of our homes.
+
+122
+00:09:46.030 --> 00:09:49.730
+Kyle Hargraves: There's the entirety of the Internet between us right? And we can kind of
+
+123
+00:09:50.090 --> 00:09:54.485
+Kyle Hargraves: pick and choose like which parts of that we can unpack over time. Right?
+
+124
+00:09:55.190 --> 00:10:00.970
+Kyle Hargraves: there are a lot of different translation layers happening for anything to get from my house to your house.
+
+125
+00:10:05.750 --> 00:10:06.690
+Kyle Hargraves: I'm not
+
+126
+00:10:07.000 --> 00:10:12.013
+Kyle Hargraves: sure how we want to approach. Actually going. Oh,
+
+127
+00:10:13.890 --> 00:10:15.260
+Kyle Hargraves: yeah. So in
+
+128
+00:10:15.360 --> 00:10:19.671
+Kyle Hargraves: in the future we're going to end up like we'll sort of look at
+
+129
+00:10:20.620 --> 00:10:24.410
+Kyle Hargraves: The actual traffic flowing like, take, you know.
+
+130
+00:10:24.430 --> 00:10:27.830
+Kyle Hargraves: packet captures dissect that. See?
+
+131
+00:10:28.250 --> 00:10:39.989
+Kyle Hargraves: What does it mean? For, like you know, such and such thing to be running and start communicating to another device like, how does that actually look, how does it look physically versus? How does it look over wireguard?
+
+132
+00:10:40.110 --> 00:10:41.718
+Kyle Hargraves: All kinds of things?
+
+133
+00:10:42.580 --> 00:10:46.899
+Kyle Hargraves: But 1st I wrote a little echo server.
+
+134
+00:10:47.450 --> 00:10:49.649
+Kyle Hargraves: All it does is listen.
+
+135
+00:10:49.980 --> 00:10:57.560
+Kyle Hargraves: and then it will send the same data back. Right? This is like a fairly standard
+
+136
+00:10:57.610 --> 00:10:58.670
+Kyle Hargraves: server.
+
+137
+00:10:59.710 --> 00:11:00.909
+Kyle Hargraves: And so
+
+138
+00:11:01.040 --> 00:11:05.449
+Kyle Hargraves: one way, I want to kind of start to unpack like, what are the different
+
+139
+00:11:05.700 --> 00:11:07.333
+Kyle Hargraves: layers here?
+
+140
+00:11:08.770 --> 00:11:09.820
+Kyle Hargraves: is.
+
+141
+00:11:09.830 --> 00:11:13.670
+Kyle Hargraves: I'll just connect to this right? It just sort of logs everything that happens.
+
+142
+00:11:14.020 --> 00:11:24.120
+Kyle Hargraves: So right now, it's listening on 0 0 0, you've probably had to type this into some node app or something. Listen on everything right, please. Just accept traffic from wherever
+
+143
+00:11:24.360 --> 00:11:28.070
+Kyle Hargraves: on this port, and so I can actually connect to myself
+
+144
+00:11:28.320 --> 00:11:30.219
+Kyle Hargraves: again, this is on my pi.
+
+145
+00:11:32.790 --> 00:11:34.609
+Kyle Hargraves: and so it sees a connection.
+
+146
+00:11:35.180 --> 00:11:41.720
+Kyle Hargraves: This is, the server received a connection from this local port 5, 1, 7, 7, 6,
+
+147
+00:11:42.290 --> 00:11:43.540
+Kyle Hargraves: when I say Hi!
+
+148
+00:11:43.700 --> 00:11:46.469
+Kyle Hargraves: And it sends back high, right sweet.
+
+149
+00:11:46.770 --> 00:11:48.070
+Kyle Hargraves: fairly straightforward.
+
+150
+00:11:48.450 --> 00:11:52.559
+Kyle Hargraves: If I do the exact same thing. This is now my laptop.
+
+151
+00:11:53.550 --> 00:11:54.240
+Kyle Hargraves: Right?
+
+152
+00:11:55.750 --> 00:12:03.600
+Kyle Hargraves: We get these crazy addresses, because that's actually ipv 6. Let's not introduce that complication. Let's do 4.
+
+153
+00:12:04.050 --> 00:12:06.900
+Kyle Hargraves: Now I get so locally
+
+154
+00:12:07.390 --> 00:12:14.219
+Kyle Hargraves: inside of my house. My pi has this 1, 9, 2, 1, 6, 8 dot, one address right
+
+155
+00:12:15.230 --> 00:12:19.299
+Kyle Hargraves: the pi happened to get 9, 8. My laptop happens to get 6, 4.
+
+156
+00:12:19.330 --> 00:12:21.510
+Kyle Hargraves: That changes over time. Honestly.
+
+157
+00:12:21.580 --> 00:12:23.020
+Kyle Hargraves: what if I say Hi!
+
+158
+00:12:23.930 --> 00:12:32.310
+Kyle Hargraves: It receives high, it sends high back. So I get high back over here right like, are we? With that? So far, everybody gets what's happening.
+
+159
+00:12:32.480 --> 00:12:32.950
+Kyle Hargraves: Okay.
+
+160
+00:12:32.950 --> 00:12:34.430
+Reuben Ayres: I'd love to ask a question.
+
+161
+00:12:34.620 --> 00:12:36.629
+Kyle Hargraves: No, yeah, please. Just interject. You know.
+
+162
+00:12:37.050 --> 00:12:37.339
+Kyle Hargraves: Go ahead!
+
+163
+00:12:37.340 --> 00:12:39.617
+Reuben Ayres: Okay, awesome. I actually tried to and was muted.
+
+164
+00:12:39.870 --> 00:12:40.640
+Kyle Hargraves: Okay.
+
+165
+00:12:40.950 --> 00:12:47.573
+Reuben Ayres: But the and this might have been something you covered before I jumped on it. I keep thinking it's Tuesday. But
+
+166
+00:12:48.240 --> 00:12:53.450
+Reuben Ayres: the Dns stuff that you're that you're having like. You're the reason your laptop knows.
+
+167
+00:12:53.500 --> 00:12:57.309
+Reuben Ayres: Pdr Pd raspberry pi dot local is is what.
+
+168
+00:12:59.407 --> 00:13:01.610
+Kyle Hargraves: There's there's a bunch of different.
+
+169
+00:13:02.070 --> 00:13:09.509
+Kyle Hargraves: Okay, so Pdr Pi dot local works because of a thing called Mdns multicast dns.
+
+170
+00:13:09.520 --> 00:13:11.069
+Kyle Hargraves: which is that
+
+171
+00:13:12.181 --> 00:13:21.639
+Kyle Hargraves: my Mac, basically broadcasts to my entire home network, hey? Who's Pdr Pi, right? And the Pdr Pi actually answers, Hey, I am
+
+172
+00:13:22.230 --> 00:13:30.810
+Kyle Hargraves: right. So like, literally anybody can answer that, John. Honestly correct me if I'm off here. I don't. I don't use Mdns. It just works by magic, and it's been around for.
+
+173
+00:13:30.810 --> 00:13:31.120
+Reuben Ayres: Okay.
+
+174
+00:13:31.120 --> 00:13:31.910
+Kyle Hargraves: I don't think he's like.
+
+175
+00:13:31.910 --> 00:13:34.190
+Reuben Ayres: Apple stuff or apple. You.
+
+176
+00:13:34.190 --> 00:13:36.090
+Jon Dugan: It's not apple specific.
+
+177
+00:13:36.090 --> 00:13:37.580
+Reuben Ayres: Right right like the unix.
+
+178
+00:13:38.480 --> 00:13:49.790
+Jon Dugan: Yeah, it it just it. It's a it's a way of doing Dns without having a centralized server. There's a well known multicast address that you can. You can publish these requests on and get responses on.
+
+179
+00:13:50.900 --> 00:13:52.360
+Jon Dugan: Multicast is.
+
+180
+00:13:52.480 --> 00:13:56.429
+Jon Dugan: and we can get to it. But I think the short answer is by magic.
+
+181
+00:13:56.720 --> 00:13:57.100
+Reuben Ayres: Yeah. Good.
+
+182
+00:13:57.100 --> 00:14:04.070
+Jon Dugan: Is like, why don't? Why don't we? Why don't I can? I'd be be happy to prepare some material so we can explain how Mdns works
+
+183
+00:14:04.150 --> 00:14:08.817
+Jon Dugan: partially, because I only vaguely know how it works. But I I'd like to figure it out a little bit better. So
+
+184
+00:14:09.030 --> 00:14:12.099
+Reuben Ayres: Sure. Yeah, by magic is a perfect answer for for me.
+
+185
+00:14:12.100 --> 00:14:14.140
+Jon Dugan: Then a miracle occurs, like, you know, like.
+
+186
+00:14:14.140 --> 00:14:16.019
+Reuben Ayres: Yeah, sorry, like, things happen.
+
+187
+00:14:19.320 --> 00:14:29.810
+Kyle Hargraves: So Mdns the Mdns. Magic is the answer, for how my laptop knows what Pdr. Pi local means, and it finds the thing that's actually like 2 feet away from me.
+
+188
+00:14:30.150 --> 00:14:31.100
+Reuben Ayres: Got it right.
+
+189
+00:14:31.500 --> 00:14:33.579
+Kyle Hargraves: The thing that knows
+
+190
+00:14:35.590 --> 00:14:38.680
+Kyle Hargraves: Ryan dot r pi, which is
+
+191
+00:14:38.750 --> 00:14:42.029
+Kyle Hargraves: like my laptop, has no idea what that means.
+
+192
+00:14:42.030 --> 00:14:43.640
+Reuben Ayres: Right. I figured that was what why.
+
+193
+00:14:43.640 --> 00:14:46.020
+Kyle Hargraves: Wait! Wait! How? How is that possible?
+
+194
+00:14:50.480 --> 00:14:51.480
+Kyle Hargraves: We're great.
+
+195
+00:14:51.480 --> 00:14:52.796
+Jon Dugan: It's an official demo now.
+
+196
+00:14:53.340 --> 00:14:56.110
+Kyle Hargraves: Okay, no, no, this is at, and T lying to me.
+
+197
+00:14:57.240 --> 00:15:00.299
+Kyle Hargraves: I should fix that. Why is at and T. Able to.
+
+198
+00:15:00.800 --> 00:15:02.359
+Jon Dugan: Oh, well, you said.
+
+199
+00:15:02.360 --> 00:15:03.510
+Kyle Hargraves: Dns, traffic.
+
+200
+00:15:03.800 --> 00:15:05.329
+Jon Dugan: Well, you're using.
+
+201
+00:15:05.330 --> 00:15:08.920
+Kyle Hargraves: Yeah, I get the same thing for everything.
+
+202
+00:15:08.920 --> 00:15:09.430
+Reuben Ayres: Yeah, that's.
+
+203
+00:15:09.430 --> 00:15:11.480
+Jon Dugan: It's because you're using their Dns servers.
+
+204
+00:15:12.719 --> 00:15:18.110
+Kyle Hargraves: I think, basically, when I dropped off both Vpns, my Dns has gone back to.
+
+205
+00:15:19.270 --> 00:15:20.290
+Kyle Hargraves: yeah, I don't know.
+
+206
+00:15:21.300 --> 00:15:25.249
+Reuben Ayres: Well, what would your answer have been if Agt weren't screwing it up for us?
+
+207
+00:15:26.030 --> 00:15:29.370
+Kyle Hargraves: It would have gotten basically unknown host, right?
+
+208
+00:15:29.560 --> 00:15:31.119
+Reuben Ayres: Right and and.
+
+209
+00:15:31.120 --> 00:15:32.920
+Kyle Hargraves: Laptop that doesn't resolve.
+
+210
+00:15:33.150 --> 00:15:38.849
+Reuben Ayres: And the answer to the question is like, within the context of the raspberry pi wire. Guard is doing that for you.
+
+211
+00:15:40.280 --> 00:15:42.520
+Kyle Hargraves: within the context of the pie.
+
+212
+00:15:43.000 --> 00:15:46.920
+Kyle Hargraves: We're actually hitting the Dns server in kubernetes.
+
+213
+00:15:46.920 --> 00:15:47.300
+Reuben Ayres: Okay.
+
+214
+00:15:47.300 --> 00:15:51.109
+Kyle Hargraves: And the Dns server in Kubernetes. I've basically preregistered everybody's.
+
+215
+00:15:51.110 --> 00:15:53.039
+Reuben Ayres: You manually set it up. Yeah, okay.
+
+216
+00:15:53.170 --> 00:15:54.160
+Reuben Ayres: yeah, perfect.
+
+217
+00:15:55.050 --> 00:15:59.940
+Kyle Hargraves: And I mean there are cooler ways. We could do that, maybe, if we ever get there, who knows?
+
+218
+00:16:01.870 --> 00:16:08.560
+Kyle Hargraves: But before we got distracted Ryan. What I would like you to do from your pie. Try to
+
+219
+00:16:08.820 --> 00:16:10.230
+Kyle Hargraves: run this command
+
+220
+00:16:10.330 --> 00:16:13.600
+Kyle Hargraves: in C Netcat, right? This is basically just like.
+
+221
+00:16:13.820 --> 00:16:17.200
+Kyle Hargraves: you know, open a connection. It's very raw minimal.
+
+222
+00:16:18.220 --> 00:16:24.249
+Kyle Hargraves: Dash 4 is optional. I don't think I set us up with ipv. 6 ips. And then Kyler pi
+
+223
+00:16:24.550 --> 00:16:26.440
+Kyle Hargraves: port 1025,
+
+224
+00:16:29.950 --> 00:16:32.499
+Kyle Hargraves: and at some point I should see connection accepted.
+
+225
+00:16:32.500 --> 00:16:33.240
+Ryan Dempsey: Getting
+
+226
+00:16:34.550 --> 00:16:37.560
+Ryan Dempsey: invalid. Option. 4.
+
+227
+00:16:37.831 --> 00:16:39.189
+Kyle Hargraves: Just take the 4 off.
+
+228
+00:16:39.430 --> 00:16:40.240
+Ryan Dempsey: Yeah.
+
+229
+00:16:44.450 --> 00:16:45.190
+Ryan Dempsey: yeah.
+
+230
+00:16:46.380 --> 00:16:48.569
+Kyle Hargraves: So now in this case.
+
+231
+00:16:49.400 --> 00:16:50.530
+Kyle Hargraves: here's yep.
+
+232
+00:16:51.160 --> 00:16:52.850
+Kyle Hargraves: Here's Ryan.
+
+233
+00:16:53.120 --> 00:16:55.471
+Kyle Hargraves: and again, different network
+
+234
+00:16:57.100 --> 00:17:00.606
+Kyle Hargraves: we might have to go through what net masks are and everything. I don't know.
+
+235
+00:17:01.070 --> 00:17:06.084
+Kyle Hargraves: 172-30-3011. Right? So this is Ryan's
+
+236
+00:17:07.619 --> 00:17:08.829
+Kyle Hargraves: raspberry pi.
+
+237
+00:17:10.770 --> 00:17:11.770
+Kyle Hargraves: So.
+
+238
+00:17:14.780 --> 00:17:16.770
+Reuben Ayres: From what Kyle, you said. Different network.
+
+239
+00:17:17.829 --> 00:17:22.769
+Kyle Hargraves: Yeah, I think that's that's what I'm trying to figure out like the the entrance point to unpack that
+
+240
+00:17:22.980 --> 00:17:27.739
+Kyle Hargraves: right. I'll kill this server. We don't really need the echo server right now.
+
+241
+00:17:28.820 --> 00:17:30.070
+Kyle Hargraves: So
+
+242
+00:17:30.690 --> 00:17:35.790
+Kyle Hargraves: on the pi, I'm just gonna run this command, IP adder.
+
+243
+00:17:35.850 --> 00:17:42.089
+Kyle Hargraves: And it is going to list, basically all of the like networking devices on this
+
+244
+00:17:42.370 --> 00:17:45.259
+Kyle Hargraves: machine, on the raspberry pi. Right?
+
+245
+00:17:45.360 --> 00:17:48.739
+Kyle Hargraves: It's gonna be very noisy, and we don't have to unpack. All of it
+
+246
+00:17:50.010 --> 00:17:53.759
+Kyle Hargraves: is my text big enough. I see everybody start to lean in. Okay.
+
+247
+00:17:55.870 --> 00:17:58.739
+Kyle Hargraves: so in this case
+
+248
+00:18:00.770 --> 00:18:08.889
+Kyle Hargraves: we have this Wg, quick up and down. Wg, 0, right? So wg, 0 here refers to a network device.
+
+249
+00:18:09.190 --> 00:18:14.899
+Kyle Hargraves: and that's 0. We count from 0. It's the wire guard device. It's the 1st wire guard.
+
+250
+00:18:16.660 --> 00:18:19.670
+Kyle Hargraves: and you can see on that I've got.
+
+251
+00:18:20.685 --> 00:18:22.440
+Kyle Hargraves: An IP address
+
+252
+00:18:22.500 --> 00:18:25.009
+Kyle Hargraves: 30 30 dot 2 right?
+
+253
+00:18:27.650 --> 00:18:36.719
+Kyle Hargraves: So I also have other networks. Right? One of those networks is loopback. You've used this every time you've ever gone to local host.
+
+254
+00:18:36.810 --> 00:18:41.810
+Kyle Hargraves: and that has a pretty fixed IP. 1, 2, 7 0 0 1
+
+255
+00:18:42.550 --> 00:18:48.500
+Kyle Hargraves: we could get into this. I don't know if net masks make sense to anybody. Slash 8 means it's actually 1, 2, 7 dot star.
+
+256
+00:18:48.560 --> 00:18:52.059
+Kyle Hargraves: right? Anything. Any of those goes to your loop back
+
+257
+00:18:52.250 --> 00:18:56.279
+Kyle Hargraves: device. And that device is, it's
+
+258
+00:18:56.360 --> 00:19:01.339
+Kyle Hargraves: it's virtual, it doesn't exist. There's nothing physical that implements loopback right?
+
+259
+00:19:01.370 --> 00:19:08.949
+Kyle Hargraves: Your machine just sees this IP and basically sends traffic back to itself. It it's never leaving anything. There's nothing like physically
+
+260
+00:19:09.460 --> 00:19:13.329
+Kyle Hargraves: happening that transmits over a wire outside of your computer.
+
+261
+00:19:15.250 --> 00:19:19.840
+Kyle Hargraves: Wlan, 0, right? This is the other. IP, we saw 1, 9, 8.
+
+262
+00:19:19.910 --> 00:19:22.189
+Kyle Hargraves: This is my wireless right?
+
+263
+00:19:22.410 --> 00:19:32.050
+Kyle Hargraves: If you plugged a cable into your raspberry pi, because you were using Ethernet it would be e 0, right? That's the ethernet one so wireless
+
+264
+00:19:32.190 --> 00:19:34.606
+Kyle Hargraves: wireless LAN, I guess.
+
+265
+00:19:36.170 --> 00:19:38.810
+Kyle Hargraves: And so when I say we have different networks. What I mean
+
+266
+00:19:38.880 --> 00:19:48.709
+Kyle Hargraves: is that you can kind of think of Loopback as its own little network, right? Nothing else is really allowed to enter that network without having already been like in scope.
+
+267
+00:19:51.380 --> 00:19:55.870
+Kyle Hargraves: the Wlan network. This is my home network.
+
+268
+00:19:58.540 --> 00:20:02.319
+Kyle Hargraves: and this is my identity on that network. Right? So like
+
+269
+00:20:02.570 --> 00:20:03.840
+Kyle Hargraves: dot 9, 8,
+
+270
+00:20:04.030 --> 00:20:09.030
+Kyle Hargraves: I send packets out. My router sees it. My, I can ping my TV, that kind of stuff.
+
+271
+00:20:10.990 --> 00:20:12.660
+Kyle Hargraves: and then finally, like
+
+272
+00:20:13.030 --> 00:20:27.249
+Kyle Hargraves: on on the wireguard network. I have this other address right? And so when I send traffic to certain places, my machine is choosing like which device am I supposed to use to get this like packet to the world
+
+273
+00:20:27.410 --> 00:20:30.229
+Kyle Hargraves: based on what networks I'm part of?
+
+274
+00:20:30.820 --> 00:20:32.859
+Kyle Hargraves: Does that start to answer it?
+
+275
+00:20:33.460 --> 00:20:34.410
+Kyle Hargraves: Previous.
+
+276
+00:20:34.860 --> 00:20:36.019
+Reuben Ayres: Very much so can.
+
+277
+00:20:39.800 --> 00:20:40.490
+Reuben Ayres: Thank you.
+
+278
+00:20:40.790 --> 00:20:42.060
+Kyle Hargraves: Yeah, yeah.
+
+279
+00:20:42.650 --> 00:20:46.870
+Kyle Hargraves: So I think what I kind of want to try and explain a little bit
+
+280
+00:20:46.980 --> 00:20:48.470
+Kyle Hargraves: is
+
+281
+00:20:49.730 --> 00:20:51.210
+Kyle Hargraves: like, why
+
+282
+00:20:51.570 --> 00:20:53.250
+Kyle Hargraves: Vpns
+
+283
+00:20:53.470 --> 00:20:55.350
+Kyle Hargraves: work like, so this.
+
+284
+00:20:55.440 --> 00:21:05.510
+Kyle Hargraves: Wg, 0, just like loop back is virtual. Again, there's no physical device, right? We didn't plug anything into our machines to make wireguard exist right? It's just software
+
+285
+00:21:07.090 --> 00:21:13.829
+Kyle Hargraves: And so the only thing on this that has, like an actual physical presence, is the wireless right?
+
+286
+00:21:13.860 --> 00:21:17.510
+Kyle Hargraves: So we know that when Ryan.
+
+287
+00:21:17.960 --> 00:21:20.079
+Kyle Hargraves: like, send some traffic to me.
+
+288
+00:21:20.090 --> 00:21:22.240
+Kyle Hargraves: opens a connection and says, Howdy!
+
+289
+00:21:22.540 --> 00:21:23.350
+Kyle Hargraves: Right?
+
+290
+00:21:23.550 --> 00:21:26.179
+Kyle Hargraves: Somehow that came over this device.
+
+291
+00:21:26.330 --> 00:21:28.059
+Kyle Hargraves: It it flowed.
+
+292
+00:21:28.410 --> 00:21:35.450
+Kyle Hargraves: you know, through the Internet, hit my home router and came to the wireless device. And like, Okay, now, we can start processing these things.
+
+293
+00:21:35.930 --> 00:21:43.180
+Kyle Hargraves: but the like. My my application actually sees it on this 30 30 coming to like
+
+294
+00:21:43.240 --> 00:21:46.040
+Kyle Hargraves: dot 2. So it sees it over. Wg, 0,
+
+295
+00:21:47.820 --> 00:22:00.340
+Kyle Hargraves: I don't think we need to get like, too, into the weeds on that. But basically, that's it's it's working by IP master rating network address translation. So wire guards. Whole purpose basically is to when it sees
+
+296
+00:22:00.410 --> 00:22:03.910
+Kyle Hargraves: a packet destined for whatever it supports.
+
+297
+00:22:04.050 --> 00:22:09.080
+Kyle Hargraves: It's going to under the hood. Rewrite that packet to be okay. Actually use like
+
+298
+00:22:09.300 --> 00:22:13.122
+Kyle Hargraves: this is my outbound name, right?
+
+299
+00:22:14.380 --> 00:22:18.480
+Kyle Hargraves: and then send that traffic out to maybe the Internet, or maybe
+
+300
+00:22:18.800 --> 00:22:22.029
+Kyle Hargraves: other people on. You know our network.
+
+301
+00:22:23.380 --> 00:22:26.899
+Kyle Hargraves: And this is not, I feel like, very clear.
+
+302
+00:22:27.200 --> 00:22:28.929
+Kyle Hargraves: But I'm not sure how better to explain it.
+
+303
+00:22:28.930 --> 00:22:34.809
+Reuben Ayres: I I would say it's very clear. What I heard is, wire guard is managing network address translation, so that when it sees
+
+304
+00:22:35.580 --> 00:22:37.121
+Reuben Ayres: something comes in, and it's
+
+305
+00:22:37.950 --> 00:22:44.440
+Reuben Ayres: it. It says it's actually from this 172, even though in reality we know it's from the 1 98 at least, I thought it was clear.
+
+306
+00:22:44.740 --> 00:22:48.660
+Jon Dugan: I mean pedantically, it's not network address translation.
+
+307
+00:22:49.161 --> 00:22:52.368
+Jon Dugan: That that is a very specific meeting. And this, isn't it?
+
+308
+00:22:52.660 --> 00:22:52.950
+Kyle Hargraves: Okay.
+
+309
+00:22:52.950 --> 00:22:53.570
+Jon Dugan: So.
+
+310
+00:22:54.110 --> 00:22:55.290
+Kyle Hargraves: Just masquerading.
+
+311
+00:22:56.668 --> 00:23:08.599
+Jon Dugan: I don't even think it's really that. I mean, it's just basically it's tunneling, basically what you're doing is you're encapsulating one packet inside another. So what it does is it receives the the wire guard interface receives that the
+
+312
+00:23:08.690 --> 00:23:10.280
+Jon Dugan: the packet
+
+313
+00:23:10.500 --> 00:23:15.459
+Jon Dugan: right cause. It's this virtual interface that, and it receives the packet, and what it does is says, Okay.
+
+314
+00:23:15.480 --> 00:23:21.039
+Jon Dugan: I need to encrypt this and then forward it along. And what I mean to do that I'll take the contents of this packet, encrypt it.
+
+315
+00:23:21.070 --> 00:23:31.210
+Jon Dugan: and then I'll put it inside a Udp packet and send that to what I happen to know is the next place, it needs to go, which is in our case, is the wireguard server running
+
+316
+00:23:31.300 --> 00:23:32.510
+Jon Dugan: in the cloud
+
+317
+00:23:33.121 --> 00:23:37.749
+Jon Dugan: and so that's called tunneling, because basically what you're doing is you're making a network that goes through another network.
+
+318
+00:23:38.035 --> 00:23:43.879
+Jon Dugan: This is many, many different kinds of tunneling. This is just one of them. But most Vpns use some form of tunneling
+
+319
+00:23:44.346 --> 00:23:50.270
+Jon Dugan: and so then, when the other end receives it, it has the keys that it needs to decrypt it
+
+320
+00:23:51.400 --> 00:23:56.420
+Jon Dugan: and then decide where it needs to go, and then re-encrypt it and send it back to say Ryan's pie.
+
+321
+00:23:57.080 --> 00:24:12.559
+Jon Dugan: It may. I don't know enough about the details of the wireguard implementation. It may put enough information in the header unencrypted that doesn't have to encrypt the entire packet to be able to forward it to Ryan. In fact, it doesn't encrypt, because I don't think the wireguard server can actually see what I send to Ryan.
+
+322
+00:24:12.570 --> 00:24:15.189
+Jon Dugan: But I'd have to be. I'm not 100% sure about that.
+
+323
+00:24:15.190 --> 00:24:16.179
+Kyle Hargraves: It can, and that's
+
+324
+00:24:16.580 --> 00:24:24.770
+Kyle Hargraves: so. I. The the masquerading is set up on the server like there I have to set explicit like IP table rules to allow, like
+
+325
+00:24:24.900 --> 00:24:30.131
+Kyle Hargraves: Wg, 0, to go into E 0, and then E, 0 can masquerade or something.
+
+326
+00:24:30.480 --> 00:24:33.499
+Jon Dugan: Yeah, that's the mask. The masquerading does happen at that end.
+
+327
+00:24:33.500 --> 00:24:34.770
+Kyle Hargraves: Yeah, yeah.
+
+328
+00:24:34.983 --> 00:24:38.616
+Jon Dugan: Because that's how we get. That's how you get back and forth from the public Internet. But
+
+329
+00:24:39.160 --> 00:24:44.629
+Jon Dugan: but in terms of what happens on your raspberry pi. It's it's not. Yeah. It's not masquerading.
+
+330
+00:24:44.950 --> 00:24:51.809
+Kyle Hargraves: And that actually gives me a good opening to explain the next little bit about like how we have this network set up
+
+331
+00:24:51.940 --> 00:24:57.595
+Kyle Hargraves: right? And for that I'm actually gonna also demonstrate that
+
+332
+00:24:58.700 --> 00:25:02.909
+Kyle Hargraves: if you followed along with the instructions we had, you have, like a full desktop environment.
+
+333
+00:25:03.190 --> 00:25:13.120
+Kyle Hargraves: Tiger tiger Vnc. Is just what raspberry Pi's docs recommend using. So I went with that. There's a bunch of different Vnc clients.
+
+334
+00:25:14.080 --> 00:25:17.629
+Kyle Hargraves: But I can connect to my raspberry pi
+
+335
+00:25:18.740 --> 00:25:24.089
+Kyle Hargraves: with my super secure password. That is definitely not just the same character, a bunch of times.
+
+336
+00:25:24.770 --> 00:25:26.190
+Kyle Hargraves: And
+
+337
+00:25:26.280 --> 00:25:28.759
+Kyle Hargraves: so this is the desktop environment, right?
+
+338
+00:25:30.140 --> 00:25:42.959
+Kyle Hargraves: And I want to pull this up, basically, so that I can open a browser. I will warn you. This is a very slow desktop environment, right? The raspberry pi is not a powerful machine. You don't want to really have to do this too much
+
+339
+00:25:44.560 --> 00:25:48.937
+Kyle Hargraves: One convenient thing you can see is like just hovering here it'll show you
+
+340
+00:25:49.610 --> 00:25:51.770
+Kyle Hargraves: your current IP, if you ever care.
+
+341
+00:25:52.130 --> 00:25:53.020
+Kyle Hargraves: But
+
+342
+00:25:54.670 --> 00:25:58.369
+Kyle Hargraves: What is my ip.com. That's pretty popular one.
+
+343
+00:25:58.690 --> 00:26:03.310
+Kyle Hargraves: Alright. So right now, this is this is my home. IP, right?
+
+344
+00:26:05.130 --> 00:26:10.709
+Kyle Hargraves: modern Internet. I also have Ipv, 6, my IP location, Chicago, Illinois.
+
+345
+00:26:11.560 --> 00:26:12.530
+Kyle Hargraves: So
+
+346
+00:26:12.740 --> 00:26:19.020
+Kyle Hargraves: again, this is on the raspberry pi going to the Internet. And it's using my home network right?
+
+347
+00:26:19.170 --> 00:26:23.729
+Kyle Hargraves: Because the way we have things configured right now is that only traffic going
+
+348
+00:26:23.830 --> 00:26:29.310
+Kyle Hargraves: for our private network is, I'll keep doing it inside of this, for now
+
+349
+00:26:30.310 --> 00:26:31.040
+Kyle Hargraves: I don't know.
+
+350
+00:26:32.070 --> 00:26:36.343
+Kyle Hargraves: I have to. You have to like mentally translate between Mac and
+
+351
+00:26:39.330 --> 00:26:43.799
+Kyle Hargraves: like Linux key bindings when you're in this, which is confusing.
+
+352
+00:26:45.699 --> 00:26:51.020
+Kyle Hargraves: So what we have right now allowed Ips, and this basically sets up
+
+353
+00:26:51.770 --> 00:26:55.790
+Kyle Hargraves: if I'm going to send traffic to one of these various Ips.
+
+354
+00:26:57.530 --> 00:27:12.410
+Kyle Hargraves: 1, 7, 2, 31, 7, 9, whatever, or 11, 7, 9 whatever. So on. Then send it over the wire guard interface right. All other traffic is still going out. The usual path which is over. My wireless.
+
+355
+00:27:12.690 --> 00:27:14.056
+Reuben Ayres: From within the raspberry pi.
+
+356
+00:27:14.330 --> 00:27:16.460
+Kyle Hargraves: From within the raspberry pi. Yes.
+
+357
+00:27:16.710 --> 00:27:17.660
+Kyle Hargraves: so
+
+358
+00:27:17.830 --> 00:27:21.620
+Kyle Hargraves: had we sort of configured this slightly differently.
+
+359
+00:27:25.000 --> 00:27:27.279
+Kyle Hargraves: I'm going to say, allow
+
+360
+00:27:28.110 --> 00:27:29.360
+Kyle Hargraves: all traffic.
+
+361
+00:27:29.510 --> 00:27:36.870
+Kyle Hargraves: So this slash. 0 means. Actually, there's no significant bits meaning literally, any IP matches right?
+
+362
+00:27:37.960 --> 00:27:39.768
+Kyle Hargraves: And we will just
+
+363
+00:27:40.660 --> 00:27:41.960
+Kyle Hargraves: bring it up and down
+
+364
+00:27:45.061 --> 00:27:52.300
+Kyle Hargraves: this would probably be good to kind of sort of unpack, but for now we're just gonna reload. Wait.
+
+365
+00:27:52.430 --> 00:27:53.690
+Kyle Hargraves: reload.
+
+366
+00:27:54.070 --> 00:27:55.005
+Kyle Hargraves: reload!
+
+367
+00:27:56.440 --> 00:27:57.910
+Kyle Hargraves: What is my IP.
+
+368
+00:28:00.500 --> 00:28:03.170
+Ryan Dempsey: Kyle as an aside. What were the other
+
+369
+00:28:03.990 --> 00:28:05.880
+Ryan Dempsey: allowed? Ips
+
+370
+00:28:06.640 --> 00:28:07.200
+Ryan Dempsey: in the.
+
+371
+00:28:07.750 --> 00:28:11.409
+Ryan Dempsey: Configuration cause that that 1st one was like wire guard.
+
+372
+00:28:11.460 --> 00:28:13.230
+Ryan Dempsey: or look like a wire guard.
+
+373
+00:28:15.090 --> 00:28:18.894
+Kyle Hargraves: Now we're yeah. Sorry. Yeah. Now we are fully in
+
+374
+00:28:20.400 --> 00:28:25.850
+Kyle Hargraves: demo territory where I've managed to, I think, knock this thing off the
+
+375
+00:28:26.310 --> 00:28:27.430
+Kyle Hargraves: Internet.
+
+376
+00:28:29.220 --> 00:28:31.159
+Kyle Hargraves: So the other Ips here
+
+377
+00:28:31.480 --> 00:28:35.120
+Kyle Hargraves: 1, 7, 2, 30. This is the wire guard network.
+
+378
+00:28:35.390 --> 00:28:35.860
+Ryan Dempsey: Yeah.
+
+379
+00:28:35.860 --> 00:28:43.174
+Kyle Hargraves: The wireguard server and each other. Right? I. This is basically just a random private IP range that I chose.
+
+380
+00:28:44.800 --> 00:28:46.699
+Kyle Hargraves: 11, 7, 9
+
+381
+00:28:47.290 --> 00:28:48.980
+Kyle Hargraves: is the
+
+382
+00:28:48.990 --> 00:28:54.789
+Kyle Hargraves: IP range we use for like span land and Gcp, that's like a reserved IP network.
+
+383
+00:28:55.040 --> 00:28:58.271
+Kyle Hargraves: These others, 2, 4, 3. Whatever
+
+384
+00:28:59.590 --> 00:29:06.439
+Kyle Hargraves: are the ips of pods within the Gke cluster. Right? So there's actually, you're you're on
+
+385
+00:29:07.540 --> 00:29:13.179
+Kyle Hargraves: 4 different networks here. Right? Yeah, that are all sort of confusingly overlapping.
+
+386
+00:29:13.440 --> 00:29:14.200
+Kyle Hargraves: Oh.
+
+387
+00:29:15.510 --> 00:29:17.810
+Kyle Hargraves: so why don't I have Internet? Now?
+
+388
+00:29:19.850 --> 00:29:23.210
+Kyle Hargraves: Come on, let me hover alright. That's working
+
+389
+00:29:26.600 --> 00:29:30.630
+Kyle Hargraves: 0 0. Everything that all looks fine. Dns looks fine.
+
+390
+00:29:30.860 --> 00:29:32.610
+Kyle Hargraves: Let's just
+
+391
+00:29:34.580 --> 00:29:35.940
+Kyle Hargraves: bring down a tunnel
+
+392
+00:29:39.780 --> 00:29:40.870
+Kyle Hargraves: perfect.
+
+393
+00:29:42.090 --> 00:29:46.089
+Kyle Hargraves: bring up a tunnel. This should not change anything at all.
+
+394
+00:29:46.690 --> 00:29:48.919
+Kyle Hargraves: but it did. God knows what that was.
+
+395
+00:29:50.550 --> 00:29:53.849
+Kyle Hargraves: And now it's only seeing ipv. 6 that.
+
+396
+00:29:55.270 --> 00:29:56.403
+Jon Dugan: That's interesting.
+
+397
+00:29:57.920 --> 00:30:01.679
+Kyle Hargraves: Because this is only setting up. Ipv 6. So outbound
+
+398
+00:30:01.760 --> 00:30:03.519
+Kyle Hargraves: 6 is, oh.
+
+399
+00:30:03.720 --> 00:30:06.253
+Kyle Hargraves: I need to tell this thing to. Okay,
+
+400
+00:30:07.590 --> 00:30:09.850
+Kyle Hargraves: I ipv, 4, can I?
+
+401
+00:30:14.340 --> 00:30:17.600
+Kyle Hargraves: Before? How do I? Okay, I can't search.
+
+402
+00:30:17.600 --> 00:30:18.360
+Jon Dugan: Or.
+
+403
+00:30:18.490 --> 00:30:20.899
+Kyle Hargraves: Is it you think curlings dash 4.
+
+404
+00:30:20.900 --> 00:30:22.150
+Jon Dugan: I think so, but I could be wrong.
+
+405
+00:30:22.150 --> 00:30:24.160
+Kyle Hargraves: Can. I has? IP,
+
+406
+00:30:28.710 --> 00:30:31.420
+Kyle Hargraves: okay, so 4 out, does that work.
+
+407
+00:30:31.420 --> 00:30:32.580
+Jon Dugan: 6. Well.
+
+408
+00:30:32.580 --> 00:30:34.690
+Kyle Hargraves: Yeah, 6 is gonna work. Right?
+
+409
+00:30:34.690 --> 00:30:37.820
+Jon Dugan: Well, it's just to confirm that 4 and 6 actually do what we think they do.
+
+410
+00:30:37.820 --> 00:30:38.500
+Kyle Hargraves: Yeah.
+
+411
+00:30:39.830 --> 00:30:41.080
+Kyle Hargraves: interesting.
+
+412
+00:30:42.460 --> 00:30:44.189
+Jon Dugan: Oh, wait a minute now. You have an address.
+
+413
+00:30:45.790 --> 00:30:46.610
+Kyle Hargraves: Yeah.
+
+414
+00:30:46.610 --> 00:30:48.530
+Jon Dugan: What is my IP? Go back to that?
+
+415
+00:30:48.850 --> 00:30:50.470
+Kyle Hargraves: Oh, that doesn't seem right.
+
+416
+00:30:51.360 --> 00:30:52.250
+Kyle Hargraves: Well, so.
+
+417
+00:30:52.250 --> 00:30:52.870
+Jon Dugan: We know.
+
+418
+00:30:52.870 --> 00:30:53.630
+Kyle Hargraves: I do
+
+419
+00:30:54.170 --> 00:30:55.150
+Kyle Hargraves: weird.
+
+420
+00:30:56.290 --> 00:30:56.860
+Ryan Dempsey: So that way.
+
+421
+00:30:56.860 --> 00:30:58.799
+Jon Dugan: Actually looks like the right address, because that's probably.
+
+422
+00:30:58.800 --> 00:31:02.170
+Kyle Hargraves: This is the correct thing. Now, yeah, I don't know why that took a while.
+
+423
+00:31:02.860 --> 00:31:03.779
+Jon Dugan: Yeah, that's weird.
+
+424
+00:31:03.780 --> 00:31:06.600
+Reuben Ayres: So so by like
+
+425
+00:31:06.620 --> 00:31:10.990
+Reuben Ayres: kneeling you to think out loud, even a little more. It's the right thing. Because
+
+426
+00:31:11.120 --> 00:31:13.019
+Reuben Ayres: ipv, 4 is a Google thing.
+
+427
+00:31:13.950 --> 00:31:14.310
+Jon Dugan: No.
+
+428
+00:31:14.310 --> 00:31:14.740
+Kyle Hargraves: No sorry.
+
+429
+00:31:14.740 --> 00:31:15.390
+Jon Dugan: We haven't.
+
+430
+00:31:15.390 --> 00:31:16.190
+Ryan Dempsey: Yeah.
+
+431
+00:31:16.190 --> 00:31:18.133
+Kyle Hargraves: Yeah, we distracted with
+
+432
+00:31:18.920 --> 00:31:26.980
+Kyle Hargraves: Ipv. 4 versus 6. But it's the right thing, because I just changed my config to say, actually, all traffic
+
+433
+00:31:27.090 --> 00:31:36.070
+Kyle Hargraves: is now allowed to go over this interface right? So the raspberry pi now says anything trying to exit this device should go over Wireguard.
+
+434
+00:31:36.140 --> 00:31:44.059
+Kyle Hargraves: which means my traffic is now going from raspberry pi to the wireguard server. And then it goes to the Internet. Okay?
+
+435
+00:31:44.330 --> 00:31:46.130
+Kyle Hargraves: So we fired. Our server
+
+436
+00:31:46.680 --> 00:31:47.780
+Kyle Hargraves: is Google.
+
+437
+00:31:48.330 --> 00:31:56.940
+Jon Dugan: And this would be like if you buy your like, one of those VPN services that people sell like this is doing exactly the same thing. It's just using the Google data center
+
+438
+00:31:57.100 --> 00:31:59.730
+Jon Dugan: as its public address space rather than whatever the
+
+439
+00:32:00.180 --> 00:32:01.980
+Jon Dugan: A. VPN provider uses.
+
+440
+00:32:03.890 --> 00:32:06.680
+Kyle Hargraves: I wonder if we just keep getting the same IP.
+
+441
+00:32:07.930 --> 00:32:10.549
+Reuben Ayres: I know you just can you say it again? Because
+
+442
+00:32:10.570 --> 00:32:21.439
+Reuben Ayres: because you changed it to previously allowed Ips so 172 means I can. I can go through wire guard. 10 means. So you said. I think it's something about span land.
+
+443
+00:32:22.680 --> 00:32:30.060
+Reuben Ayres: But it am I just to like replay? Am I correct that changing this to 0 0 0 allowed you to
+
+444
+00:32:30.470 --> 00:32:37.330
+Reuben Ayres: caused it to be, say Google on there, on what's my id.com? And I know you just said it. But can you say one more time? Why, that? Why.
+
+445
+00:32:40.030 --> 00:32:41.060
+Kyle Hargraves: So.
+
+446
+00:32:42.340 --> 00:32:44.360
+Kyle Hargraves: yeah, how? How can I explain this?
+
+447
+00:32:44.560 --> 00:32:46.829
+Kyle Hargraves: So in a new way.
+
+448
+00:32:47.300 --> 00:32:47.870
+Jon Dugan: So
+
+449
+00:32:49.250 --> 00:32:54.250
+Jon Dugan: Can you do like a net? Stat dash? Rn, I think there's a 4 argument in there. You need to do too.
+
+450
+00:32:55.590 --> 00:32:56.460
+Kyle Hargraves: Maybe.
+
+451
+00:32:57.970 --> 00:32:59.425
+Kyle Hargraves: Okay, I do
+
+452
+00:33:00.500 --> 00:33:03.479
+Jon Dugan: Yeah, you can. Probably. Yeah, I I'm still so old that I don't.
+
+453
+00:33:03.480 --> 00:33:03.910
+Kyle Hargraves: And
+
+454
+00:33:05.160 --> 00:33:05.470
+Kyle Hargraves: yeah.
+
+455
+00:33:05.470 --> 00:33:06.070
+Jon Dugan: Very well.
+
+456
+00:33:06.070 --> 00:33:11.472
+Kyle Hargraves: I actually studied these before I started, so that I didn't. If config my way through this
+
+457
+00:33:12.210 --> 00:33:12.710
+Kyle Hargraves: so.
+
+458
+00:33:12.710 --> 00:33:15.820
+Jon Dugan: That makes me feel better, Kyle. You don't know how much better that makes me feel.
+
+459
+00:33:18.950 --> 00:33:32.859
+Kyle Hargraves: IP, you know we saw IP adder before that listed. All our devices showed us like what networks we are on. You could also just ask the kernel, hey? If I send it traffic to in this case 1 1, 1, 1 right. That's a cloudflare dns server. It's just
+
+460
+00:33:33.030 --> 00:33:38.100
+Kyle Hargraves: it's always alive a hundred percent. Just ping that thing if you ever want to know if the network's up
+
+461
+00:33:38.340 --> 00:33:43.219
+Kyle Hargraves: 8, 8 8 is Google's. But so we can ask this, and it's going to say
+
+462
+00:33:43.840 --> 00:33:55.380
+Kyle Hargraves: to get to 1, 1, 1 1. i'm going to use this IP address right? Source 1, 7, 3, 0 32, and it's gonna go over device. Wg, 0,
+
+463
+00:33:55.560 --> 00:33:57.429
+Kyle Hargraves: right? So that means
+
+464
+00:33:57.820 --> 00:34:04.760
+Kyle Hargraves: when I send something out of my device out of the raspberry pi right now. It it goes to
+
+465
+00:34:05.270 --> 00:34:08.672
+Kyle Hargraves: like the wire guard network right?
+
+466
+00:34:09.460 --> 00:34:14.399
+Kyle Hargraves: it could be the same, for I don't know. Do I need to like? Look something up.
+
+467
+00:34:15.530 --> 00:34:17.780
+Kyle Hargraves: Well, we'll do
+
+468
+00:34:18.219 --> 00:34:19.940
+Kyle Hargraves: like Ryan
+
+469
+00:34:20.610 --> 00:34:22.639
+Kyle Hargraves: right? So still, the same network.
+
+470
+00:34:24.340 --> 00:34:27.189
+Reuben Ayres: You mean like you just want an IP address of something that's not wireguard.
+
+471
+00:34:27.610 --> 00:34:33.130
+Kyle Hargraves: Yeah, I was just trying to think of like, do I need to look up like, I don't know, like google.com, I mean.
+
+472
+00:34:33.130 --> 00:34:36.100
+Reuben Ayres: I can give you an IP address for Unc. Here.
+
+473
+00:34:36.190 --> 00:34:37.749
+Reuben Ayres: Oh, you found one. Okay.
+
+474
+00:34:38.165 --> 00:34:40.660
+Kyle Hargraves: I that's not oh, my God!
+
+475
+00:34:43.210 --> 00:34:43.560
+Ryan Dempsey: You know.
+
+476
+00:34:43.560 --> 00:34:44.749
+Kyle Hargraves: I don't have.
+
+477
+00:34:44.860 --> 00:34:45.670
+Kyle Hargraves: Okay.
+
+478
+00:34:45.679 --> 00:34:47.569
+Ryan Dempsey: Yeah, I see. Address memorized Ruben.
+
+479
+00:34:48.030 --> 00:34:48.900
+Reuben Ayres: Yeah.
+
+480
+00:34:49.159 --> 00:34:49.629
+Kyle Hargraves: Do you really.
+
+481
+00:34:49.719 --> 00:34:50.509
+Ryan Dempsey: Let's we'll see.
+
+482
+00:34:51.389 --> 00:34:54.179
+Reuben Ayres: 1, 5, 2 dot, 2 dot, 21 dot one.
+
+483
+00:34:54.369 --> 00:34:56.459
+Reuben Ayres: That's 1 of the many they have many
+
+484
+00:34:56.599 --> 00:34:57.299
+Reuben Ayres: right.
+
+485
+00:34:57.300 --> 00:34:58.410
+Kyle Hargraves: So no matter what
+
+486
+00:34:58.530 --> 00:35:02.829
+Kyle Hargraves: right now, everything is going outside on wire guard. Right?
+
+487
+00:35:03.850 --> 00:35:06.620
+Kyle Hargraves: If we go back to the config we had before.
+
+488
+00:35:10.120 --> 00:35:13.360
+Kyle Hargraves: what? Okay can't tab complete because of pseudo.
+
+489
+00:35:14.170 --> 00:35:16.059
+Kyle Hargraves: So we'll go back to the original one.
+
+490
+00:35:16.650 --> 00:35:19.389
+Kyle Hargraves: where just certain select traffic
+
+491
+00:35:19.590 --> 00:35:29.569
+Kyle Hargraves: and I set it up this way intentionally. So that, like your raspberry pi, when you just do whatever is not bothering to go over like the Google network, right? There's no good reason to do that
+
+492
+00:35:30.575 --> 00:35:31.420
+Kyle Hargraves: so
+
+493
+00:35:31.440 --> 00:35:32.740
+Kyle Hargraves: restart it.
+
+494
+00:35:37.230 --> 00:35:39.410
+Kyle Hargraves: Now we'll ask for the same thing, and
+
+495
+00:35:39.510 --> 00:35:45.369
+Kyle Hargraves: this is kind of going down the route of I mentioned. It'd be good to maybe unpack some of the stuff that this is printing.
+
+496
+00:35:45.890 --> 00:35:50.040
+Kyle Hargraves: But IP route. Now come on
+
+497
+00:35:53.303 --> 00:35:59.139
+Kyle Hargraves: so now the device is Wlan, right? Because this IP
+
+498
+00:35:59.190 --> 00:36:03.999
+Kyle Hargraves: is nowhere in the like set of allowed ips that I had before.
+
+499
+00:36:06.300 --> 00:36:08.359
+Kyle Hargraves: Right? 1, 5, 2, 2
+
+500
+00:36:08.410 --> 00:36:13.410
+Kyle Hargraves: like does not overlap any of these. So if we IP route get 1, 1, 1, 1
+
+501
+00:36:13.420 --> 00:36:17.069
+Kyle Hargraves: same thing, just go straight to the Internet. Right? Well
+
+502
+00:36:17.390 --> 00:36:21.299
+Kyle Hargraves: and again, maybe we'll unpack this later. Not really straight to the Internet, to your
+
+503
+00:36:21.320 --> 00:36:22.789
+Kyle Hargraves: home, router to.
+
+504
+00:36:22.790 --> 00:36:23.310
+Reuben Ayres: Right, right.
+
+505
+00:36:23.310 --> 00:36:25.980
+Kyle Hargraves: Knows what to God knows what to the Internet right like.
+
+506
+00:36:26.310 --> 00:36:30.176
+Kyle Hargraves: But still going to Ryan.
+
+507
+00:36:31.370 --> 00:36:35.130
+Kyle Hargraves: if I can type anything correctly on the 1st try
+
+508
+00:36:37.450 --> 00:36:43.938
+Kyle Hargraves: over wire guard, right? And that's because we're doing this sort of like selective routing of where things go.
+
+509
+00:36:44.280 --> 00:36:53.439
+Chris Williams: But presumably it was allowed to go over the wireless interface. Last time, too. Why did it choose the wire guard interface over the wireless interface.
+
+510
+00:36:54.580 --> 00:36:55.850
+Kyle Hargraves: For which.
+
+511
+00:36:56.540 --> 00:36:57.020
+Kyle Hargraves: before.
+
+512
+00:36:57.020 --> 00:36:57.570
+Jon Dugan: Or because
+
+513
+00:36:57.840 --> 00:36:58.450
+Jon Dugan: because of the people.
+
+514
+00:36:58.916 --> 00:37:01.250
+Chris Williams: Allow 0 0, 0, yeah.
+
+515
+00:37:01.390 --> 00:37:01.980
+Kyle Hargraves: Yeah,
+
+516
+00:37:03.420 --> 00:37:04.840
+Kyle Hargraves: So
+
+517
+00:37:05.160 --> 00:37:15.075
+Kyle Hargraves: this config set this like calling up here is like, after I changed back. So we can compare the difference. I just want to be able to scroll.
+
+518
+00:37:15.650 --> 00:37:22.699
+Kyle Hargraves: so wg, quick is really just a script that like wraps up running a few commands for you. So you don't have to do it by hand.
+
+519
+00:37:22.920 --> 00:37:29.649
+Kyle Hargraves: But this is creating a route right? An Ipv 4 route. So anything going to this network
+
+520
+00:37:29.850 --> 00:37:31.930
+Kyle Hargraves: goes to device. Wg, 0
+
+521
+00:37:32.140 --> 00:37:34.780
+Kyle Hargraves: same thing for the other networks. Right?
+
+522
+00:37:35.490 --> 00:37:37.020
+Kyle Hargraves: So now let's reset it
+
+523
+00:37:37.090 --> 00:37:38.100
+Kyle Hargraves: again
+
+524
+00:37:39.470 --> 00:37:41.080
+Kyle Hargraves: and look at the difference.
+
+525
+00:37:42.310 --> 00:37:43.480
+Kyle Hargraves: What am I doing?
+
+526
+00:37:48.170 --> 00:37:53.749
+Kyle Hargraves: So this is actually gonna add now a route for 0, meaning literally, everything
+
+527
+00:37:53.810 --> 00:37:56.529
+Kyle Hargraves: goes to Wg, 0, right?
+
+528
+00:37:56.907 --> 00:38:02.789
+Kyle Hargraves: Which is what makes all of my traffic flow over wire guard here on out.
+
+529
+00:38:02.790 --> 00:38:03.679
+Reuben Ayres: Got it.
+
+530
+00:38:04.230 --> 00:38:07.210
+Reuben Ayres: Yeah, thank you. That's a those that was good
+
+531
+00:38:07.370 --> 00:38:11.140
+Reuben Ayres: explanation. I I maybe you're not. Maybe I'm interrupting you. Maybe you have more to say. Sorry.
+
+532
+00:38:11.470 --> 00:38:13.089
+Kyle Hargraves: No so.
+
+533
+00:38:13.090 --> 00:38:16.866
+Reuben Ayres: Cause I have. Another question is, is, what is so? The
+
+534
+00:38:18.440 --> 00:38:24.610
+Reuben Ayres: I guess one kind of piece, I think, kind of what maybe what Chris was kind of getting at, or what made me think of, was like.
+
+535
+00:38:24.700 --> 00:38:26.620
+Reuben Ayres: So wg, quick. Seems like it's
+
+536
+00:38:27.010 --> 00:38:33.450
+Reuben Ayres: sort of some of the things you would do with like if config, but also it does some other stuff, too. And so like.
+
+537
+00:38:33.550 --> 00:38:34.609
+Reuben Ayres: maybe like.
+
+538
+00:38:34.730 --> 00:38:39.179
+Reuben Ayres: is there a very quick, high, level answer about like W.
+
+539
+00:38:39.490 --> 00:38:49.989
+Reuben Ayres: Like what it's doing and like is it? Is it sort of writing things to like configurational files that maybe you would. If you're using wireguard, you might edit another way, like in a more traditional, unix kind of setup.
+
+540
+00:38:49.990 --> 00:38:52.589
+Jon Dugan: It's running those commands is actually what it's doing.
+
+541
+00:38:53.080 --> 00:38:54.129
+Kyle Hargraves: Like literally running.
+
+542
+00:38:54.130 --> 00:38:54.599
+Reuben Ayres: Oh! These are not.
+
+543
+00:38:54.600 --> 00:38:58.659
+Kyle Hargraves: Are the exact commands. So if we look at down.
+
+544
+00:38:58.740 --> 00:39:01.210
+Kyle Hargraves: it deleted the device. Wg. 0.
+
+545
+00:39:01.560 --> 00:39:02.690
+Reuben Ayres: Okay, okay, got it.
+
+546
+00:39:02.690 --> 00:39:05.656
+Kyle Hargraves: And then this resolve cont is basically
+
+547
+00:39:06.240 --> 00:39:13.030
+Kyle Hargraves: a utility. It uses to switch out your Dns server, so that when you're on wire guard. You actually talk to Kubernetes right?
+
+548
+00:39:13.030 --> 00:39:13.630
+Reuben Ayres: Right.
+
+549
+00:39:14.190 --> 00:39:17.819
+Kyle Hargraves: And so the rest are like Wgconf. I think this is just like
+
+550
+00:39:17.950 --> 00:39:29.719
+Kyle Hargraves: literally streaming in the public key, and all of that that's configured part of that, you know, in your config you specify what IP you'll have. So it sets the IP address add.
+
+551
+00:39:30.647 --> 00:39:34.863
+Kyle Hargraves: Mtu. I hope we don't really bother covering.
+
+552
+00:39:35.930 --> 00:39:42.779
+Kyle Hargraves: basically controls packet sizes again. Dns, I don't know what this means. No idea what fw, mark is.
+
+553
+00:39:42.790 --> 00:39:45.119
+Kyle Hargraves: And then the rest is like routing.
+
+554
+00:39:45.200 --> 00:39:50.309
+Kyle Hargraves: I also don't know what nft means. I assume it's not pictures of monkeys.
+
+555
+00:39:51.550 --> 00:39:53.360
+Jon Dugan: I mean, who knows? Yeah.
+
+556
+00:39:53.570 --> 00:40:01.890
+Reuben Ayres: So I guess I guess, like I I should. I can admit that I wasn't really necessarily reading all of that output unless you specifically pointed to it. So I.
+
+557
+00:40:01.890 --> 00:40:08.599
+Kyle Hargraves: Yeah, no, I wouldn't. I also didn't really read it. I just like having used it before. I know what's there, right?
+
+558
+00:40:12.780 --> 00:40:16.649
+Jon Dugan: So there is also a slightly tricky thing in here, and I don't
+
+559
+00:40:17.090 --> 00:40:19.350
+Jon Dugan: know exactly
+
+560
+00:40:19.440 --> 00:40:26.526
+Jon Dugan: how it's getting solved here, but if the default route goes over over wire guard. Then how does the wire guard packet make its way to the Internet?
+
+561
+00:40:27.100 --> 00:40:36.450
+Jon Dugan: because it has to still go over the Wm. 0. Interface. One of these commands most likely. Does that. But I'm not sure I don't. I'm not familiar enough with a modern Linux stack, to be totally sure.
+
+562
+00:40:41.350 --> 00:40:42.680
+Jon Dugan: It might be that one that's.
+
+563
+00:40:42.680 --> 00:40:42.980
+Kyle Hargraves: Yeah.
+
+564
+00:40:42.980 --> 00:40:43.310
+Jon Dugan: Breast.
+
+565
+00:40:43.310 --> 00:40:45.890
+Kyle Hargraves: I bet that's what this this is.
+
+566
+00:40:46.970 --> 00:40:49.805
+Kyle Hargraves: Yeah, I can actually maybe show it on
+
+567
+00:40:50.790 --> 00:40:52.990
+Kyle Hargraves: let's go back to.
+
+568
+00:40:53.600 --> 00:40:55.929
+Kyle Hargraves: So we're going to go to kubernetes.
+
+569
+00:41:00.180 --> 00:41:01.540
+Kyle Hargraves: That guy. Nope.
+
+570
+00:41:01.930 --> 00:41:07.359
+Kyle Hargraves: okay, set account. It's very annoying to switch between Google accounts.
+
+571
+00:41:07.720 --> 00:41:08.550
+Kyle Hargraves: But
+
+572
+00:41:09.640 --> 00:41:11.739
+Kyle Hargraves: expand land, okay?
+
+573
+00:41:12.930 --> 00:41:15.469
+Kyle Hargraves: So we're just gonna go into the wire guard. Susan.
+
+574
+00:41:18.956 --> 00:41:20.329
+Kyle Hargraves: This is
+
+575
+00:41:22.520 --> 00:41:27.470
+Kyle Hargraves: fairly bare bones. But if we look at
+
+576
+00:41:29.700 --> 00:41:30.850
+Kyle Hargraves: W.
+
+577
+00:41:31.280 --> 00:41:32.700
+Kyle Hargraves: I don't know. Let's
+
+578
+00:41:33.130 --> 00:41:34.030
+Kyle Hargraves: what is it?
+
+579
+00:41:34.480 --> 00:41:35.606
+Kyle Hargraves: Wg, con.
+
+580
+00:41:36.560 --> 00:41:40.062
+Kyle Hargraves: This is like, don't internalize any of that.
+
+581
+00:41:40.800 --> 00:41:44.420
+Kyle Hargraves: What matters here? And again there's good. Oh, no! This is all
+
+582
+00:41:44.510 --> 00:41:46.290
+Kyle Hargraves: public keys.
+
+583
+00:41:48.470 --> 00:41:53.030
+Kyle Hargraves: except for the server itself. But so this stuff is like
+
+584
+00:41:54.340 --> 00:42:05.269
+Kyle Hargraves: what I was. I guess what I was mentioning to John about like this is how traffic comes in on a wire guard interface. And then I stole this from the Internet. I don't know why any of this works, really.
+
+585
+00:42:05.330 --> 00:42:12.460
+Kyle Hargraves: but it then goes out on the Ethernet in this case right? So if we were to look at IP adder here.
+
+586
+00:42:15.480 --> 00:42:23.220
+Kyle Hargraves: The wireguard server has, you know. It's it's also part of the wireguard network, it's got dot one. It always wins dot one
+
+587
+00:42:23.825 --> 00:42:29.774
+Kyle Hargraves: but it also has. And Ryan this this might explain a little
+
+588
+00:42:30.380 --> 00:42:31.510
+Kyle Hargraves: it has
+
+589
+00:42:31.550 --> 00:42:32.980
+Kyle Hargraves: an ethernet
+
+590
+00:42:33.020 --> 00:42:37.470
+Kyle Hargraves: device which is actually fake right? There's like so many layers of virtualization.
+
+591
+00:42:37.610 --> 00:42:38.310
+Kyle Hargraves: But
+
+592
+00:42:39.030 --> 00:42:45.170
+Kyle Hargraves: that is one of 1, 2, 43, dot, 1, 32 is like one of the ranges that was used for
+
+593
+00:42:46.320 --> 00:42:54.349
+Kyle Hargraves: the allowed Ips. And so that's like a pod. IP, that's the IP of the wireguard server within Kubernetes.
+
+594
+00:42:56.050 --> 00:42:57.240
+Kyle Hargraves: So
+
+595
+00:42:57.850 --> 00:43:00.030
+Kyle Hargraves: yeah, but basically like
+
+596
+00:43:01.170 --> 00:43:10.437
+Kyle Hargraves: traffic will. And maybe I should just like sort of somewhat stop here and say, like what we're hoping to do coming soon
+
+597
+00:43:11.150 --> 00:43:12.740
+Kyle Hargraves: is like.
+
+598
+00:43:14.910 --> 00:43:23.290
+Kyle Hargraves: Probably next time we can start to run like wireshark or Tcp dump or something, and look at the actual traffic and see like
+
+599
+00:43:23.800 --> 00:43:29.979
+Kyle Hargraves: what happens on Wg. 0 on the server versus on the raspberry pi, when
+
+600
+00:43:30.973 --> 00:43:37.156
+Kyle Hargraves: you know, like when Ryan opens some the connection to that echo server and types in howdy? Right?
+
+601
+00:43:38.100 --> 00:43:47.930
+Kyle Hargraves: and it's very different what happens from like Wg, zero's perspective from wire guards perspective. There, as John was mentioning, it's kind of like we're all in the same room with like
+
+602
+00:43:48.010 --> 00:43:55.365
+Kyle Hargraves: it abstracts over so much that besides the high latency, it's it's very much just being like right next to each other.
+
+603
+00:43:56.890 --> 00:43:57.980
+Kyle Hargraves: but then.
+
+604
+00:43:58.140 --> 00:44:05.200
+Kyle Hargraves: underneath that, on, like something closer to physical devices, we could look at what wire guards actually sending, which is
+
+605
+00:44:05.360 --> 00:44:13.709
+Kyle Hargraves: totally opaque noise, right? It's all very encrypted. And so that's how that like tunneling happens. And we can kind of take that apart, too.
+
+606
+00:44:14.250 --> 00:44:18.560
+Reuben Ayres: So pedagogically sort of like, are you trying to draw a boundary like
+
+607
+00:44:19.140 --> 00:44:32.360
+Reuben Ayres: Wireguard? Does all these things with like virtualization and like things, are actually in Google. And then there's there's not actually a physical device here and so forth. We're like, you're kind of accounting for that. But like pedagogically, I guess. Do I take it that your aim is to sort of like we're gonna
+
+608
+00:44:32.370 --> 00:44:36.130
+Reuben Ayres: live in the abstraction that, like we're sitting in a room, and we're all together.
+
+609
+00:44:36.140 --> 00:44:41.429
+Reuben Ayres: And then that's basically. And then we're gonna going forward kind of act on that in that
+
+610
+00:44:42.020 --> 00:44:43.550
+Reuben Ayres: like within that mode.
+
+611
+00:44:44.510 --> 00:44:51.569
+Kyle Hargraves: Yeah, yeah. Well, I'm I. I think, in in my head. At least, that's the that's the starting place, right? Like we can see.
+
+612
+00:44:52.250 --> 00:44:57.350
+Kyle Hargraves: You know what is talking to a Dns server look like what is connecting to another machine? Look like
+
+613
+00:44:58.247 --> 00:45:01.700
+Kyle Hargraves: what does that getting interrupted look like? But then.
+
+614
+00:45:03.150 --> 00:45:04.076
+Kyle Hargraves: you know.
+
+615
+00:45:05.440 --> 00:45:09.809
+Kyle Hargraves: I think the the meatier part comes when you start to unpack that and that
+
+616
+00:45:09.970 --> 00:45:15.879
+Kyle Hargraves: like once, you're not really on the same network. And you're actually transiting over these like multiple different layers and stuff.
+
+617
+00:45:17.390 --> 00:45:18.640
+Jon Dugan: Yeah. Yeah.
+
+618
+00:45:18.770 --> 00:45:23.890
+Jon Dugan: So my answer to that is, yes, like, sort of pedagogically, I think what we want to do is start is like, hey, we're all in this room.
+
+619
+00:45:23.970 --> 00:45:26.949
+Jon Dugan: And then, like couple of weeks, we're like, Hey, actually lied to you. Well, we told you.
+
+620
+00:45:26.950 --> 00:45:27.530
+Reuben Ayres: Right, right, right.
+
+621
+00:45:27.530 --> 00:45:31.710
+Jon Dugan: But like, here's here's here's the 1st level of lies, and then.
+
+622
+00:45:31.710 --> 00:45:32.120
+Reuben Ayres: Right.
+
+623
+00:45:32.120 --> 00:45:40.139
+Jon Dugan: There's about 7 levels lies that you know. That's an executive. But there's a lot of levels of lies between where we where we are today. And what actually happens.
+
+624
+00:45:40.140 --> 00:45:40.830
+Reuben Ayres: Right.
+
+625
+00:45:41.170 --> 00:45:43.170
+Jon Dugan: Lies, abstractions, whatever you know.
+
+626
+00:45:43.570 --> 00:45:44.250
+Reuben Ayres: Yeah.
+
+627
+00:45:46.060 --> 00:45:48.060
+Jon Dugan: I guess another thing
+
+628
+00:45:48.450 --> 00:45:52.550
+Jon Dugan: that occurred to me as we were doing this, so we glossed a little bit over like
+
+629
+00:45:52.670 --> 00:46:03.420
+Jon Dugan: net masks, and what the routes mean, and all that like. Do people feel like they know what that means already? Or would you all like me to put together like a 5 to 10 min like introduction to like what that means.
+
+630
+00:46:04.660 --> 00:46:04.940
+Ryan Dempsey: Appreciate.
+
+631
+00:46:04.940 --> 00:46:07.169
+Reuben Ayres: Tell you what I think it means, and
+
+632
+00:46:08.441 --> 00:46:11.149
+Reuben Ayres: and see see if I'm right or wrong. Yeah.
+
+633
+00:46:11.800 --> 00:46:12.280
+Reuben Ayres: Well.
+
+634
+00:46:12.300 --> 00:46:18.759
+Jon Dugan: Yeah, sure, I was actually trying to get Judge. Everyone's like comfort with those concepts, not just one person's, but.
+
+635
+00:46:18.760 --> 00:46:19.969
+Maurice Rabb: Think it'd be worth doing.
+
+636
+00:46:20.310 --> 00:46:20.970
+Jon Dugan: Okay.
+
+637
+00:46:21.320 --> 00:46:23.229
+Jon Dugan: but I'm happy to have you explain it as well.
+
+638
+00:46:23.230 --> 00:46:25.740
+Reuben Ayres: No, no, no, I can do it another time.
+
+639
+00:46:26.180 --> 00:46:27.669
+Maurice Rabb: No, I mean well.
+
+640
+00:46:28.505 --> 00:46:28.870
+Maurice Rabb: yes.
+
+641
+00:46:28.870 --> 00:46:34.610
+Jon Dugan: I was trying to shut you down. I was just wanting to make sure everyone else got back to me with like their opinion of like, where else they get that. So.
+
+642
+00:46:34.990 --> 00:46:37.010
+Ryan Dempsey: Give it a shot. Ruben. Yeah, give it a shot.
+
+643
+00:46:37.010 --> 00:46:40.503
+Reuben Ayres: Okay, it's like slash. It's sort of like,
+
+644
+00:46:41.040 --> 00:46:53.460
+Reuben Ayres: anything that goes within that number of. So like, IP address v, 4 would be like 4 8 bit numbers. So slash 32 is like the whole thing is sort of a wild card. Maybe I'm backwards. Maybe I'm wrong.
+
+645
+00:46:53.640 --> 00:46:59.340
+Reuben Ayres: I'm just scared, because because when you said that, I'm like, well, maybe I misunderstand it, and then I'll confuse everyone. So 24 means
+
+646
+00:46:59.530 --> 00:47:06.479
+Reuben Ayres: like 3 of them since that's 8 plus 8 plus 8. Then the last 3 numbers are sort of like it could be anything. Those 3 numbers can be anything.
+
+647
+00:47:07.060 --> 00:47:08.380
+Reuben Ayres: Yes, black.
+
+648
+00:47:08.380 --> 00:47:09.960
+Jon Dugan: Byte can be anything.
+
+649
+00:47:10.270 --> 00:47:14.450
+Reuben Ayres: The last bite can be. So so 24 is the part that can't change nothing.
+
+650
+00:47:14.450 --> 00:47:15.170
+Jon Dugan: Correct.
+
+651
+00:47:15.170 --> 00:47:16.059
+Reuben Ayres: Okay. Okay.
+
+652
+00:47:16.060 --> 00:47:19.879
+Chris Williams: I'm less comfortable with what that means. In ipv. 5 and v. 6.
+
+653
+00:47:20.690 --> 00:47:22.490
+Jon Dugan: There is No. Ipv. 5.
+
+654
+00:47:22.490 --> 00:47:23.100
+Kyle Hargraves: Thank God!
+
+655
+00:47:25.610 --> 00:47:30.010
+Jon Dugan: You could look up Tuba, and that's the closest thing. But that never happened. So.
+
+656
+00:47:30.670 --> 00:47:42.140
+Kyle Hargraves: Yeah, in in v, 6, it means the same thing. It's just that, like the notation for v, 6 is crazier, and it's a hundred 28 bit instead of 32. So like this, slash 64 is actually like.
+
+657
+00:47:42.800 --> 00:47:49.820
+Kyle Hargraves: I don't know. Probably this is the only static part, right, and all of this is outside the mask.
+
+658
+00:47:50.190 --> 00:47:53.359
+Jon Dugan: Yeah, the double colons usually is representative. So.
+
+659
+00:47:53.690 --> 00:47:54.290
+Kyle Hargraves: Yeah.
+
+660
+00:47:54.290 --> 00:48:01.229
+Jon Dugan: Yeah, that that sounds that sounds right. The double columns, like just elated with like, that's all to zoom be zeros between the 2 the double colons which generate.
+
+661
+00:48:01.690 --> 00:48:03.909
+Jon Dugan: says FE. 8, 0, and then Colon Colon.
+
+662
+00:48:03.950 --> 00:48:08.105
+Jon Dugan: then it's so. Those are all 8, all the Zeros, and then the rest is just the
+
+663
+00:48:08.920 --> 00:48:11.689
+Jon Dugan: the remainder, the actually the specific parts of that.
+
+664
+00:48:12.420 --> 00:48:20.518
+Jon Dugan: And Fe 8 0 is like a special. I I it's I think it's it may be it's not. Look, loop back, but it's like
+
+665
+00:48:22.040 --> 00:48:24.786
+Jon Dugan: It's a link level, scoped address, I think.
+
+666
+00:48:26.530 --> 00:48:29.437
+Jon Dugan: which, whatever we can get into that at some point. But that's
+
+667
+00:48:30.110 --> 00:48:30.820
+Jon Dugan: that's.
+
+668
+00:48:30.820 --> 00:48:36.080
+Kyle Hargraves: Yeah, I don't know. It's got scope link. But yeah, I have. I have no intuition for Ipv 6.
+
+669
+00:48:36.120 --> 00:48:41.020
+Kyle Hargraves: I'm always confused, like when I hit something on the Internet and it's in use.
+
+670
+00:48:41.200 --> 00:48:46.859
+Kyle Hargraves: I decided 20 years ago it would never happen. And now I'm just kind of annoyed that people are letting it happen
+
+671
+00:48:47.176 --> 00:48:49.843
+Kyle Hargraves: even though it's definitely the a good thing right?
+
+672
+00:48:50.140 --> 00:48:55.110
+Jon Dugan: It's yeah. The thing is, it's sort of I mean, it's been 20 years, and it's only still
+
+673
+00:48:55.610 --> 00:49:00.419
+Jon Dugan: somewhat relevant. It's it is relevant. But it's not as relevant as it should be by now.
+
+674
+00:49:02.420 --> 00:49:03.050
+Reuben Ayres: Does it? Is it?
+
+675
+00:49:03.050 --> 00:49:04.900
+Jon Dugan: Difference with results. But
+
+676
+00:49:05.150 --> 00:49:06.000
+Jon Dugan: hmm.
+
+677
+00:49:06.000 --> 00:49:11.819
+Reuben Ayres: When we go from billions of computers to trillions of computers, it'll just become like absolutely necessary, or something.
+
+678
+00:49:12.130 --> 00:49:17.049
+Jon Dugan: Well, the thing is, there's a whole pile of hacks that made it less necessary, which.
+
+679
+00:49:17.050 --> 00:49:17.630
+Reuben Ayres: That's true.
+
+680
+00:49:17.850 --> 00:49:22.160
+Jon Dugan: In true Internet style, are just good enough to not totally break everything.
+
+681
+00:49:22.250 --> 00:49:25.835
+Jon Dugan: or only break things when you least expect it. However, you want to look at it.
+
+682
+00:49:26.060 --> 00:49:26.450
+Reuben Ayres: Yeah.
+
+683
+00:49:26.490 --> 00:49:29.669
+Jon Dugan: So there's a pile of hacks there
+
+684
+00:49:30.670 --> 00:49:33.863
+Jon Dugan: that they are basically mostly good enough.
+
+685
+00:49:35.140 --> 00:49:36.959
+Jon Dugan: and then on top of that.
+
+686
+00:49:37.666 --> 00:49:41.819
+Jon Dugan: Yeah, I mean it's that's the main, the main reason, and people are lazy.
+
+687
+00:49:42.770 --> 00:49:43.210
+Reuben Ayres: Yeah.
+
+688
+00:49:43.210 --> 00:49:44.069
+Jon Dugan: So like.
+
+689
+00:49:45.100 --> 00:49:47.319
+Jon Dugan: we could talk about like like
+
+690
+00:49:48.000 --> 00:49:51.209
+Jon Dugan: what I, what problem? I, pv, 6, is trying to solve.
+
+691
+00:49:51.960 --> 00:49:56.960
+Jon Dugan: And then, yeah, and and explain the differences between 2 at a very high level at some point. If you want.
+
+692
+00:49:57.940 --> 00:50:05.503
+Jon Dugan: gonna force me to study up, because, like, I also took basically the same stance as Kyle of like, yeah, I'll I'll I'll worry about v, 6 when actually someone uses it.
+
+693
+00:50:07.330 --> 00:50:09.020
+Maurice Rabb: Last responsible moment.
+
+694
+00:50:09.500 --> 00:50:10.160
+Jon Dugan: Yeah.
+
+695
+00:50:10.820 --> 00:50:12.410
+Chris Williams: This was very helpful.
+
+696
+00:50:12.430 --> 00:50:13.659
+Chris Williams: This is good.
+
+697
+00:50:15.020 --> 00:50:16.219
+Maurice Rabb: So much for the account.
+
+698
+00:50:16.220 --> 00:50:19.183
+Kyle Hargraves: Good. This is still just kind of laying the groundwork.
+
+699
+00:50:19.860 --> 00:50:29.530
+Kyle Hargraves: if if you're setting anything up and need help, just message me or put it in those engineering channel, probably realistically. We can debug in public. But
+
+700
+00:50:30.450 --> 00:50:31.570
+Kyle Hargraves: yeah.
+
+701
+00:50:32.390 --> 00:50:33.699
+Kyle Hargraves: and again, so far.
+
+702
+00:50:33.700 --> 00:50:37.450
+Jon Dugan: I have, like one other like kind of straw poll for people.
+
+703
+00:50:38.153 --> 00:50:46.909
+Jon Dugan: If I asked you all to plug your raspberry pi into the Ethernet on your home, Router, which would you all know what I meant? What I was asking you to do.
+
+704
+00:50:47.150 --> 00:50:47.810
+Chris Williams: Yeah.
+
+705
+00:50:48.290 --> 00:50:52.260
+Ryan Dempsey: I actually almost did that today, because I have a I have a
+
+706
+00:50:52.510 --> 00:50:56.379
+Ryan Dempsey: small network switch under my desk, and it's like, right by the pie.
+
+707
+00:50:56.670 --> 00:50:57.390
+Jon Dugan: Okay.
+
+708
+00:50:58.280 --> 00:51:04.559
+Kyle Hargraves: Probably have to go buy an Ethernet cable. I don't think I have any Ethernet in my house.
+
+709
+00:51:04.560 --> 00:51:06.690
+Maurice Rabb: So many cables.
+
+710
+00:51:06.690 --> 00:51:12.850
+Ryan Dempsey: Just installed I ran conduit so I could have Ethernet down here in the basement.
+
+711
+00:51:13.020 --> 00:51:14.430
+Maurice Rabb: So why are you asking, John.
+
+712
+00:51:14.740 --> 00:51:23.340
+Jon Dugan: So there's 2 reasons. One is, there's an exercise we could do where we could actually create your own wireless, base station and then create your own wireless network out of the raspberry pi.
+
+713
+00:51:23.360 --> 00:51:25.609
+Jon Dugan: Sort of understand a little bit about how that works.
+
+714
+00:51:26.000 --> 00:51:30.370
+Jon Dugan: But it would be easier if you could continue to get to the raspberry pi over the ethernet.
+
+715
+00:51:30.430 --> 00:51:33.770
+Jon Dugan: The other one is just a purely pragmatic thing of like
+
+716
+00:51:35.210 --> 00:51:40.768
+Jon Dugan: we. We say there's a physical interface there for the wireless network, and there is. But do you know what it looks like?
+
+717
+00:51:41.160 --> 00:51:41.630
+Reuben Ayres: Right.
+
+718
+00:51:41.630 --> 00:51:47.460
+Jon Dugan: Like the Internet port is something you could see, and there's a light that comes on when you plug it in and like so sort of at a level of just
+
+719
+00:51:47.560 --> 00:51:56.449
+Jon Dugan: attaching some of this back to physical reality. I think there's a certain certain appeal in my mind to just be able to see that connection. But that may be.
+
+720
+00:51:56.790 --> 00:51:58.170
+Jon Dugan: yeah, I'm just yeah.
+
+721
+00:51:58.170 --> 00:52:01.469
+Maurice Rabb: That's I mean, anything that makes things more tangible is
+
+722
+00:52:01.800 --> 00:52:02.270
+Maurice Rabb: worthy.
+
+723
+00:52:02.270 --> 00:52:02.660
+Reuben Ayres: Yeah.
+
+724
+00:52:03.470 --> 00:52:07.131
+Chris Williams: We're all up here to remember when that was the way you did it. I think.
+
+725
+00:52:08.790 --> 00:52:11.714
+Jon Dugan: I mean, that's that's all there was. But.
+
+726
+00:52:12.610 --> 00:52:14.279
+Maurice Rabb: Yeah, I remember 4 different.
+
+727
+00:52:14.280 --> 00:52:14.915
+Jon Dugan: But.
+
+728
+00:52:15.550 --> 00:52:19.580
+Maurice Rabb: Before I had Wi-fi I had a 50 foot ethernet cable that I would drag around the.
+
+729
+00:52:19.580 --> 00:52:20.819
+Reuben Ayres: Yeah, yeah.
+
+730
+00:52:22.220 --> 00:52:33.689
+Kyle Hargraves: I actually I saw there's some new like long range Wi-fi, I think they called it y low, and it made me look up. Wait! Wait! What does Wi-fi stand for? Wireless wire wireless? And then
+
+731
+00:52:33.720 --> 00:52:48.650
+Kyle Hargraves: is it really wireless fidelity? And they say No, except all of their branding was like, Oh, it's like hi-fi. But for the Internet. And it's like, so it is fidelity. But they're like, no. So yeah, it just means nothing sounds infuriating.
+
+732
+00:52:49.370 --> 00:52:50.040
+Jon Dugan: Yeah.
+
+733
+00:52:51.870 --> 00:52:52.830
+Jon Dugan: yeah.
+
+734
+00:52:53.950 --> 00:52:54.750
+Jon Dugan: cool.
+
+735
+00:52:55.230 --> 00:52:56.760
+Kyle Hargraves: Alright, yeah, thanks a lot.
+
+736
+00:52:56.760 --> 00:52:57.789
+Maurice Rabb: Hi, everybody. Thanks. Kyle.
+
+737
+00:52:57.790 --> 00:52:58.569
+Kyle Hargraves: See you next time. Go.
+
+738
+00:52:58.570 --> 00:53:01.940
+Jon Dugan: Kyle. By the way, if you need any, that cable, just put it on your your
+
+739
+00:53:02.442 --> 00:53:03.287
+Jon Dugan: your card.
+
+740
+00:53:03.710 --> 00:53:04.029
+Reuben Ayres: We could like.
+
+741
+00:53:04.030 --> 00:53:04.500
+Kyle Hargraves: I.
+
+742
+00:53:04.500 --> 00:53:07.790
+Reuben Ayres: We run Ethernet cable around Chicago. There you go.
+
+743
+00:53:07.790 --> 00:53:08.290
+Kyle Hargraves: Yeah, yeah.
+
+744
+00:53:08.290 --> 00:53:08.890
+Ryan Dempsey: Hey!
+
+745
+00:53:08.890 --> 00:53:09.930
+Kyle Hargraves: They would love that.
+
+746
+00:53:09.930 --> 00:53:11.850
+Ryan Dempsey: Maurice, get on your boat.
+
+747
+00:53:12.175 --> 00:53:13.799
+Maurice Rabb: You broke into it. Yeah.
+
+748
+00:53:13.800 --> 00:53:14.570
+Ryan Dempsey: Here.
+
+749
+00:53:14.570 --> 00:53:15.230
+Maurice Rabb: Yeah.
+
+750
+00:53:16.030 --> 00:53:19.529
+Reuben Ayres: So we can simulate the cable going under the ocean to Europe.
+
+751
+00:53:19.530 --> 00:53:27.130
+Jon Dugan: We'll run fiber over to to Ryan's house so we can have our like, you know. Trans. Trans.
+
+752
+00:53:27.130 --> 00:53:27.390
+Maurice Rabb: More.
+
+753
+00:53:28.335 --> 00:53:29.280
+Jon Dugan: Cable.
+
+754
+00:53:29.280 --> 00:53:30.930
+Maurice Rabb: Maurice was never seen again.
+
+755
+00:53:34.960 --> 00:53:36.841
+Reuben Ayres: No, I'm doing network engineering. I'm fine.
+
+756
+00:53:37.580 --> 00:53:39.004
+Ryan Dempsey: I swear it's legit.
+
+757
+00:53:39.990 --> 00:53:42.525
+Jon Dugan: Tech Viking funeral.
+
+758
+00:53:45.730 --> 00:53:47.540
+Jon Dugan: Alright, alright.
+
+759
+00:53:47.540 --> 00:53:49.020
+Kyle Hargraves: I am cool.
+
+760
+00:53:49.130 --> 00:53:50.070
+Ryan Dempsey: Thank you.
+
