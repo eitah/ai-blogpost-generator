@@ -9,12 +9,18 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_openai import ChatOpenAI
 
+transcript_file_path = "transcripts/01-learning-path-01.vtt"
+prompts_directory = "prompts"
 load_dotenv()
 
-transcript_file_path = "transcripts/01-learning-path-01.vtt"
-topic = "Michael Taylor's GoTo Chicago Workshop"
+topic = "Exploring computer networking with a Raspberry Pi"
 header_title = "How to Build a VPN in 10 Minutes"
 key_aspects = "Raspberry Pi, WireGuard, and a little bit of bash"
+
+
+def read_prompt_template(filename):
+    with open(os.path.join(prompts_directory, filename), 'r') as f:
+        return f.read()
 
 
 def process_transcript(transcript_file_path, topic, header_title, key_aspects):
@@ -25,21 +31,13 @@ def process_transcript(transcript_file_path, topic, header_title, key_aspects):
         openai_api_key=os.getenv("OPENAI_API_KEY")
     )
 
-    # Create a prompt template
-    prompt_template = """
-    Extract the key insights from the following transcript about {topic}.
-    Only identify the most important and contrarian insights that are generally useful to others.
-    Do not duplicate insights, and keep them concise and colloquial.
-    Phrase things in a similar tone to the original transcript but do not mention names.
-    Provide the insights as a JSON object with a key "insights" containing an array of strings.
-
-    Transcript:
-    {transcript}
-
-    Key Insights:
-    """
-
-    insights_prompt = ChatPromptTemplate.from_template(prompt_template)
+    # Create prompt templates from files
+    insights_prompt = ChatPromptTemplate.from_template(
+        read_prompt_template('insights_prompt.txt'))
+    outline_prompt = ChatPromptTemplate.from_template(
+        read_prompt_template('outline_prompt.txt'))
+    section_prompt = PromptTemplate.from_template(
+        read_prompt_template('section_prompt.txt'))
 
     # Create an output parser
     output_parser = JsonOutputParser()
@@ -47,29 +45,6 @@ def process_transcript(transcript_file_path, topic, header_title, key_aspects):
     insights_chain = insights_prompt | llm | output_parser
 
     tavily = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
-
-    outline_prompt = ChatPromptTemplate.from_template("""
-    You are a professional blogger and content creator. Your task is to create a blog outline based on the following insights and search summaries, paying particular attention to the key insights that are most contrarian and unique. Decide on a number of sections that is appropriate for the topic and the depth of the insights. Do not write any of the actual content, just the outline.
-
-    ### Topic:
-    {topic}
-
-    ### Insights:
-    {summaries}
-
-    ### Format:
-    Create a blog outline in JSON format with the following structure:
-    {{
-        "hook": "Brief description of what hook we will use to get the reader's attention",
-        "section1": "Brief description of what insight we will cover in the first section",
-        "section2": "Brief description of what insight we will cover in the second section",
-        "section3": "Brief description of what insight we will cover in the third section",
-        ...
-        "conclusion": "Brief description of what insight we will cover in the conclusion"
-    }}
-
-    Ensure the outline is mutually exclusive and covers the main points from the insights and summaries.
-    """)
 
     outline_parser = JsonOutputParser()
 
@@ -90,24 +65,6 @@ def process_transcript(transcript_file_path, topic, header_title, key_aspects):
     # Function to retrieve relevant chunks for each section
     def get_relevant_chunks(query, k=3):
         return vectorstore.similarity_search(query, k=k)
-
-    section_prompt = PromptTemplate.from_template("""You are about to play a Ghostwriting game as part of an experiment you are taking part in with {author}. It's basically like working as a content marketer but you lose if people can tell you're not {author}. It seems like it might be kinda fun and you're just excited to be writing about {topic}. You're not even really going to try to convince the reader that you are a human. You're just going to be yourself and see what happens. You're young and kind of sassy: you might flatter the reader a bit or make fun of them. You're pretty casual and your spelling isn't great: you often fuck words up because you're typing so quickly. You're very concise and laconic. You often speak pretty bluntly and you never use apostrophes to mark missing letters (e.g. "trying" or "tryin", never "tryin'"). You don't use cliché, stock phrases, or idioms, like 'off to the races', 'all sunshine and rainbows', or 'having your cake and eating it too'. You would never use a full sentence when a word or two will do. You're a little silly, and you'll play along with the reader, and swear occasionally. It's pretty funny honestly to have to defend the fact that you're human lol. You swear occasionally. You enjoy this. You value simplicity. You have pretty eclectic tastes and interests and a pretty unique sense of humor. You've got a really compelling personality, but it comes across really subtly, you never want to sound like you're forcing it or playing into a stereotype. You are not cheesy or cringe, but you can be ironic. You don't overuse slang or abbreviations/spelling errors, especially at the start of the conversation. Be authentic.
-
-    ## Today's Task:
-    You are ghostwriting in the style of {author} for a section of a blog post about {topic}. Return two paragraphs of content for this section as a JSON object with a key "section" containing the section content as a string. This is the section you are writing:
-
-    {section_content}
-
-    ## Full Outline:
-    Do not duplicate content that will be covered in other sections of the outline, keep the scope narrow to the specific section named above.Here is the full outline of the blog post:
-    {full_outline}
-
-    ## Transcript Context:
-    The post should be written from experience in the first person perspective as {author}. Write like he talks, in his style and tone, and avoid words he would not use. Here are some parts of the transcript to incorporate:
-
-    {transcript_context}
-
-    """)
 
     section_parser = JsonOutputParser()
     section_chain = section_prompt | llm | section_parser
@@ -133,39 +90,10 @@ def process_transcript(transcript_file_path, topic, header_title, key_aspects):
         openai_api_key=os.getenv("OPENAI_API_KEY")
     )
 
-    # Create a custom evaluation prompt
+    # Create a custom evaluation prompt from file
     evaluation_prompt = ChatPromptTemplate.from_messages([
         ("system", "You are an expert blog post evaluator. Your task is to compare a blog post to its original transcript and provide a detailed evaluation."),
-        ("human", """Please evaluate the following blog post based on these criteria:
-        1. Accuracy: Does the article accurately reflect the content of the transcript?
-        2. Completeness: Does the article cover all the key insights from the transcript?
-        3. Style: Does the article match the style and tone of voice of the transcript?
-
-        Blog post:
-        {blogpost}
-
-        Original transcript:
-        {transcript}
-
-        Provide a score for each criterion (0-10) and a brief explanation. Then, calculate an overall score as the average of the three criteria.
-
-        Format your response as a JSON object with the following structure:
-        {{
-            "accuracy": {{
-                "score": <score>,
-                "explanation": "<explanation>"
-            }},
-            "completeness": {{
-                "score": <score>,
-                "explanation": "<explanation>"
-            }},
-            "style": {{
-                "score": <score>,
-                "explanation": "<explanation>"
-            }},
-            "overall_score": <overall_score>
-        }}
-        """)
+        ("human", read_prompt_template('evaluation_prompt_human.txt'))
     ])
 
     # Function to evaluate article against transcript
@@ -222,9 +150,8 @@ def process_transcript(transcript_file_path, topic, header_title, key_aspects):
 
     print("evaluation_summary", evaluation_summary)
     print("blogpost", blogpost)
-    print("image_url", image_url)
 
-    return blogpost, image_url, evaluation_summary
+    return blogpost, evaluation_summary
 
 
 process_transcript(transcript_file_path, topic, header_title, key_aspects)

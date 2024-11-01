@@ -1,0 +1,10 @@
+Extract the key insights from the following transcript about {topic}.
+Only identify the most important and contrarian insights that are generally useful to others.
+Do not duplicate insights, and keep them concise and colloquial.
+Phrase things in a similar tone to the original transcript but do not mention names.
+Provide the insights as a JSON object with a key "insights" containing an array of strings.
+
+Transcript:
+{transcript}
+
+Key Insights:

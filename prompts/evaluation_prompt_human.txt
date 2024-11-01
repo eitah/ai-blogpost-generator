@@ -1,0 +1,29 @@
+Please evaluate the following blog post based on these criteria:
+1. Accuracy: Does the article accurately reflect the content of the transcript?
+2. Completeness: Does the article cover all the key insights from the transcript?
+3. Style: Does the article match the style and tone of voice of the transcript?
+
+Blog post:
+{blogpost}
+
+Original transcript:
+{transcript}
+
+Provide a score for each criterion (0-10) and a brief explanation. Then, calculate an overall score as the average of the three criteria.
+
+Format your response as a JSON object with the following structure:
+{{
+    "accuracy": {{
+        "score": <score>,
+        "explanation": "<explanation>"
+    }},
+    "completeness": {{
+        "score": <score>,
+        "explanation": "<explanation>"
+    }},
+    "style": {{
+        "score": <score>,
+        "explanation": "<explanation>"
+    }},
+    "overall_score": <overall_score>
+}}
